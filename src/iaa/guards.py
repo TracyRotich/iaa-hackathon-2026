@@ -6,7 +6,10 @@ import pandas as pd
 from .config import COLS, POST_LOSS_FIELD_HINTS
 
 
-def leakage_suspects(feature_names, allow=()):
+SAFE_DESPITE_NAME = ("prior_claims_5y",)  # declared before joining: pre-inception, not leakage
+
+
+def leakage_suspects(feature_names, allow=SAFE_DESPITE_NAME):
     """Feature names that look like post-loss information. Review each by hand; allow-list survivors."""
     hits = []
     for f in feature_names:

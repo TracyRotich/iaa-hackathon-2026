@@ -4,7 +4,7 @@ Predict expected ultimate claim cost for 2025 (net of excess and recoveries, exc
 
 ## Layout
 ```
-src/iaa/      config, metric, guards, models, validation, submission, synthetic test data
+src/iaa/      config (feature policy), target (claims → ultimate cost), metric, guards, models, validation, submission
 tests/        automated checks (metric, calibration, reproducibility, leakage, exposure, submission format)
 docs/         decision_log.md (governance), ai_log.md (AI use and verification)
 data/         Kaggle files, not committed
@@ -19,4 +19,4 @@ PYTHONPATH=src pytest -q
 ```
 
 ## Status
-Week 1. Pipeline and tests run on synthetic data. Next: load the Kaggle data, set real column names in `src/iaa/config.py`, answer the target questions in `docs/decision_log.md`.
+Week 1. Target construction (claims → row-level ultimate cost) and model pipeline built and tested on hand-built and synthetic data (12 tests). Next: join the competition, download the parquet files, run `target.claims_data_checks` and the trap checks in `docs/decision_log.md`.
