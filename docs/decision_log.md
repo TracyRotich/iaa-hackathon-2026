@@ -42,6 +42,39 @@ One entry per material choice: what was decided, why, the evidence, and what wou
 - Level backtest and sensitivity (severity trend ±2%, BI IBNER 1.0/1.1).
 
 
+## GLM benchmark (21 Oct)
+
+GLM methods used and how each was adapted:
+
+| Method | Used here | Adaptation |
+|---|---|---|
+| Poisson GLM (frequency) × Gamma GLM (severity), log link | `glm.FreqSevGLM` | Exposure as weight on the rate (offset-equivalent); IBNR-adjusted counts |
+| Natural splines with knots learned on training data only | Spline basis per numeric feature, knots at training quantiles, frozen for test | Applied to every numeric feature with 12+ values, after 1–99% clipping |
+| Actuarial target encoding (credibility, leave-one-out) | `glm.CredibilityEncoder` for make_model and occupation | κ estimated by Bühlmann–Straub (the fully data-driven option) instead of κ = 20; unit test reproduces the slide example (2.513 / 2.536) |
+| Ridge (L2) shrinkage GLM | `alpha` in PoissonRegressor / GammaRegressor | Stein-type savvyGLM is R-only; ridge is the available Python analogue |
+| Metric suite: Gini (normalised, weighted), A/E, winsorised RMSE, deviance | `metrics.scorecard`, `weighted_gini` ported from R | D² (competition metric) added; Gini on cost rate weighted by exposure |
+| No leakage from test into training | All encoders, splines, medians fitted on training years only | Validation by **time** (2021–22 → 2023, 2021–23 → 2024), not random 5-fold CV, because the same policy appears in several years and the task is a future year |
+| Bias–variance trade-off; shrinkage towards a target | Blend of GLM and GBM; credibility | Planned for Part 2: shrink new-market estimates towards the Part 1 model |
+
+### Results on the holdouts (D² after rescaling; 2023 / 2024)
+
+| Line | LightGBM | GLM | Best blend (weight on GBM) |
+|---|---|---|---|
+| Motor | 0.075 / 0.070 | **0.090 / 0.082** | 0.3 → 0.090 / 0.082 |
+| Buildings | **0.106 / 0.110** | 0.097 / 0.102 | 0.7 → **0.108 / 0.111** |
+| Contents | 0.088 / 0.089 | 0.089 / 0.091 | 0.5 → **0.093 / 0.094** |
+
+The blend weight was chosen on 2023 and the same weight was best on 2024 for every line.
+
+### What credibility said about the features
+- **Buildings occupation:** Bühlmann κ = ∞ for both frequency and severity, i.e. no between-occupation signal beyond noise. It had been the top buildings GBM feature by gain. Dropping it changed holdout D² by −0.0002 (2023) and −0.0004 (2024), so it is **removed** (decision 19): no accuracy cost, and one fewer sensitive factor to justify.
+- **Contents occupation:** frequency κ ≈ 2,700 exposure-years (some signal), severity κ = ∞.
+- **Motor occupation:** frequency κ ≈ 130–190 (strong signal: students), severity none.
+- **Motor make_model** (300 models): κ ≈ 3,000 exposure-years for frequency, so each model gets about 45% credibility. Credibility-encoding it for LightGBM lifted motor GBM D² from 0.075 to 0.081 (2023) and 0.070 to 0.074 (2024); the raw categorical was overfitting (48% of GBM gain).
+
+| 19 | 21 Oct | Drop occupation from buildings | Credibility κ = ∞; no holdout loss when removed; fairness | Holdout | — |
+| 20 | 21 Oct | **Submission 2** = per-line blend of LightGBM and GLM (motor 0.3 / buildings 0.7 / contents 0.5 on GBM), rescaled to the same 2025 level | Best holdout D² on every line; weights stable across both holdouts | Holdout tables above | — |
+
 ## Findings so far
 
 - **16 Oct, synthetic data:** with a 5% a year trend and no trend term, the GLM predicted 83% and LightGBM 78% of the held-out total. The 2025 projection needs an explicit trend step, checked on the holdout before use. Default LightGBM overfits small data (D² 0.002 vs GLM 0.072): tune with early stopping.

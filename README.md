@@ -19,7 +19,7 @@ PYTHONPATH=src pytest -q
 ```
 
 ## Status
-Part 1. Real data loaded 21 Oct. Data repairs (exposure basis, duplicate claims, one suspect 11.9m claim), target by row, 2025 level by peril, LightGBM relativities per line, first submission `submissions/sub01_gbm_level.csv`. 15 tests pass.
+Part 1. Real data loaded 21 Oct. Data repairs (exposure basis, duplicate claims, one suspect 11.9m claim), target by row, 2025 level by peril, LightGBM relativities per line, first submission `submissions/sub01_gbm_level.csv`. Submission 2 adds a Poisson x Gamma GLM (splines, credibility target encoding, ridge) blended with LightGBM. 18 tests pass.
 
 ## Reproduce
 ```
@@ -27,4 +27,6 @@ PYTHONPATH=src python scripts/prepare.py      # needs the Kaggle parquet files i
 PYTHONPATH=src python scripts/experiment.py motor   # holdout checks per line
 PYTHONPATH=src python scripts/level.py        # 2025 level by line and peril
 PYTHONPATH=src python scripts/run_part1.py submissions/sub01_gbm_level.csv
+PYTHONPATH=src python scripts/compare_models.py motor    # LightGBM vs GLM vs blends
+PYTHONPATH=src python scripts/run_part1_v2.py submissions/sub02_blend_glm_gbm.csv
 ```

@@ -11,6 +11,9 @@ Every AI suggestion that affected the work, with the human decision and the chec
 | 5 | 21 Oct | Features | Claude (via GBM gain) | `previous_insurer` was the top contents feature | Reject the feature | Tabulated frequency by insurer: flat across 37 levels → noise | Holdout D² 0.069 → 0.078 |
 | 6 | 21 Oct | Guardrails | Claude | Leakage name check flagged `marital_status` (contains "status") | Modify: allow-listed; added a test | Read the column definition | Second false positive from the AI's own rule |
 | 7 | 21 Oct | Level | Claude | Severity trend first fitted on 2021–23; contents level came out below the 2024 rate | Modify: refit on 2021–24 short-tail perils | Compared projected level with history by year | Contents 117 → 124 |
-| 8 | | | | | | | |
+| 8 | 21 Oct | Modelling | Claude | From materials supplied by Tracy Rotich, proposed a GLM pipeline (freq × sev, splines, actuarial target encoding with LOO, ridge, Gini/A-E metrics) | Accept, with changes: time split instead of random CV; κ by Bühlmann–Straub instead of 20 | Unit test reproduces a published worked example exactly; holdout comparison against LightGBM | The GLM beat LightGBM on motor by 20% |
+| 9 | 21 Oct | Features | Claude | GBM ranked occupation as the top buildings feature | Reject: credibility κ = ∞ and no holdout loss when dropped | Bühlmann–Straub estimate; ablation on both holdouts | Removed a sensitive factor at no cost |
+| 10 | 21 Oct | Bug | Claude's GLM code | Gamma fit failed on motor: some claiming rows net to zero after recoveries | Fix: severity fitted only on rows with positive cost | Error traced to rows with recoveries = incurred | — |
+| 11 | | | | | | | |
 
 **Rule for myself:** no AI-written number, feature or claim goes into the write-up until I have reproduced it or checked it against the data.

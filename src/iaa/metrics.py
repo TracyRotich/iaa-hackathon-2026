@@ -26,6 +26,32 @@ def ave_table(df, segment, actual="actual", expected="expected"):
     return pd.concat([g, tot])
 
 
+def weighted_gini(actual, weights, predicted):
+    """Weighted Gini: rank by prediction, compare Lorenz curve with random."""
+    d = pd.DataFrame({"a": actual, "w": weights, "p": predicted}).sort_values("p", ascending=False)
+    rnd = np.cumsum(d["w"] / d["w"].sum()).to_numpy()
+    lor = np.cumsum(d["a"] * d["w"]).to_numpy() / np.sum(d["a"] * d["w"])
+    return float(np.sum(lor[:-1] * rnd[1:]) - np.sum(lor[1:] * rnd[:-1]))
+
+
+def normalised_gini(actual, weights, predicted):
+    return weighted_gini(actual, weights, predicted) / weighted_gini(actual, weights, actual)
+
+
+def scorecard(y, pred, exposure):
+    """Metric suite: D^2 (competition), Gini on cost rate, A/E, winsorised RMSE."""
+    y, pred, e = (np.asarray(v, float) for v in (y, pred, exposure))
+    scaled = pred * y.sum() / pred.sum()
+    err = np.abs(y - scaled)
+    cap = np.quantile(err, 0.99)
+    return {
+        "d2": d2(y, pred), "d2_rescaled": d2(y, scaled),
+        "gini_norm": normalised_gini(y / e, e, pred / e),
+        "a_over_e": y.sum() / pred.sum(),
+        "rmse_win99": float(np.sqrt(np.mean(np.minimum(err, cap) ** 2))),
+    }
+
+
 def lift_table(y_true, y_pred, bins=10):
     """Decile lift: does the model rank risks? Mean actual and predicted by predicted decile."""
     d = pd.DataFrame({"actual": y_true, "pred": y_pred})
