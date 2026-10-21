@@ -46,11 +46,13 @@ EXCLUDE = {
     # Pricing circularity
     "written_premium": "circular: encodes the insurer's current pricing; target is risk premium. Test as challenger only",
     "discount_applied": "circular: a pricing decision, not a risk characteristic",
+    # Noise found in data (21 Oct)
+    "previous_insurer": "37 levels with near-identical frequency; top GBM gain on contents was overfitting noise",
 }
 
 # Kept, but reviewed for fairness and documented (permitted rating factors in UK practice,
 # but each needs a stated risk rationale and a proxy check in the write-up).
-REVIEW = ("occupation", "credit_band", "marital_status", "previous_insurer",
+REVIEW = ("occupation", "credit_band", "marital_status",
           "missed_payments_12m", "vehicle_colour", "household_size")
 
 # Claims-table fields and anything recorded after a loss: never a feature.

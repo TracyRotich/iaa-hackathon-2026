@@ -6,7 +6,7 @@ import pandas as pd
 from .config import COLS, POST_LOSS_FIELD_HINTS
 
 
-SAFE_DESPITE_NAME = ("prior_claims_5y",)  # declared before joining: pre-inception, not leakage
+SAFE_DESPITE_NAME = ("prior_claims_5y", "marital_status")  # pre-inception fields whose names match a hint
 
 
 def leakage_suspects(feature_names, allow=SAFE_DESPITE_NAME):

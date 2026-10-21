@@ -19,4 +19,12 @@ PYTHONPATH=src pytest -q
 ```
 
 ## Status
-Week 1. Target construction (claims → row-level ultimate cost) and model pipeline built and tested on hand-built and synthetic data (12 tests). Next: join the competition, download the parquet files, run `target.claims_data_checks` and the trap checks in `docs/decision_log.md`.
+Part 1. Real data loaded 21 Oct. Data repairs (exposure basis, duplicate claims, one suspect 11.9m claim), target by row, 2025 level by peril, LightGBM relativities per line, first submission `submissions/sub01_gbm_level.csv`. 15 tests pass.
+
+## Reproduce
+```
+PYTHONPATH=src python scripts/prepare.py      # needs the Kaggle parquet files in data/
+PYTHONPATH=src python scripts/experiment.py motor   # holdout checks per line
+PYTHONPATH=src python scripts/level.py        # 2025 level by line and peril
+PYTHONPATH=src python scripts/run_part1.py submissions/sub01_gbm_level.csv
+```

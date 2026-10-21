@@ -36,6 +36,14 @@ def claims_data_checks(claims):
     })
 
 
+def drop_duplicate_claims(claims):
+    """Remove records identical on every field except claim_id (found 16 Oct data: 604 pairs,
+    one id of each pair usually 9 digits). Keeps the first record of each pair."""
+    cols = [c for c in claims.columns if c != "claim_id"]
+    dup = claims.duplicated(cols, keep="first")
+    return claims[~dup].copy(), int(dup.sum())
+
+
 # --------------------------------------------------------------------------- 1. matching
 
 def match_claims(policies, claims):
@@ -55,10 +63,10 @@ def match_claims(policies, claims):
 
 # --------------------------------------------------------------------------- 2-4. value
 
-def claim_value(matched, ibner_factor=1.0):
+def claim_value(matched, ibner_factor=1.0, cap=None):
     """Net claim value for non-repudiated claims. Open claims can carry an IBNER factor."""
     c = matched[matched["status"] != "repudiated"].copy()
-    c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0)
+    c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0, upper=cap)
     c.loc[c["status"] == "open", "value"] *= ibner_factor
     return c
 
@@ -99,16 +107,18 @@ def row_completeness(policies, grid, cdf, n_points=24, valuation=VALUATION_DATE)
     return f.mean(axis=1)
 
 
-def build_target(policies, claims, ibner_factor=1.0, max_delay_days=730, min_completeness=0.2):
+def build_target(policies, claims, ibner_factor=1.0, max_delay_days=730, min_completeness=0.2, cap=None):
     """Full pipeline for one line. Returns a row-level frame plus a diagnostics dict."""
+    claims, n_dup = drop_duplicate_claims(claims)
     matched, unmatched = match_claims(policies, claims)
-    valued = claim_value(matched, ibner_factor)
+    valued = claim_value(matched, ibner_factor, cap)
     rows = reported_cost_by_row(policies, valued)
     grid, cdf = reporting_delay_cdf(claims, max_delay_days)
     comp = row_completeness(policies, grid, cdf)
     rows["completeness"] = np.clip(comp, min_completeness, 1.0)
     rows["claim_cost"] = rows["reported_cost"] / rows["completeness"]
     diag = {
+        "duplicates_dropped": n_dup,
         "claims_in": len(claims),
         "matched": len(matched),
         "unmatched": len(unmatched),

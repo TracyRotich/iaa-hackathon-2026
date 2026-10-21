@@ -14,6 +14,33 @@ One entry per material choice: what was decided, why, the evidence, and what wou
 | 8 | 16 Oct | **IBNR**: gross up each row's reported cost by 1 / completeness, where completeness = the line's empirical reporting-delay CDF averaged over the row's period | Claims are valued at 31 Dec 2024 and some 2024 claims are unreported. Without this, 2024 frequency is understated and the model learns a false downward trend | Unit test: a Q4 2024 row is materially incomplete, a 2022 row is complete | Delay differs strongly by peril (then do it by peril); seasonality in losses |
 | 9 | 16 Oct | **IBNER** factor on open claims defaults to 1.0, with sensitivity runs at e.g. 1.05 and 1.10 reported | A single snapshot shows no case-estimate development, so it cannot be estimated from history. Stated as a limitation, not hidden | Diagnostics report the share of value in open claims | Open claims are a large share of 2024 value |
 | 10 | 16 Oct | Feature policy in `config.EXCLUDE` / `config.REVIEW`: exclude leakage, fairness proxies, marketing artefacts and pricing-circular fields; review permitted-but-sensitive factors | See the trap list below | Test that excluded fields stay excluded | — |
+| 11 | 21 Oct | **Exposure recomputed from the row dates** (days / 365) for every row | 5,357 motor, 3,895 buildings and 4,032 contents rows had exposure in days (e.g. 327.0) or on a 360-day year (1.0139 for a full year). Raw totals overstated exposure by about 35% and understated every rate | Test files are all on days / 365; unit test | — |
+| 12 | 21 Oct | **Drop exact duplicate claims** (identical except claim_id; 604 pairs, 0.4% of incurred) | Double-counting; one id of each pair is usually 9 digits, the rest 8 | Unit test | — |
+| 13 | 21 Oct | **Cap claims at 1.2m** in the target and the level | One open motor bodily-injury case estimate is 11.9m, ten times the next largest (1.12m closed). It looks like a keying error (paid 0.74m) | Listed top 8 incurred | Organisers confirm it is genuine |
+| 14 | 21 Oct | Recoveries are **not** inside incurred: value = incurred − recoveries | On closed claims incurred = paid exactly, including the 9.8% with recoveries | Data check | — |
+| 15 | 21 Oct | **Level and relativities separated.** Level = 2025 frequency × severity by peril (`level.py`); relativities = LightGBM per line; predictions rescaled so each line's total = level × test exposure | Motor bodily injury is immature (80% of 2024 BI claims open, only 56% reported), so a model trained on rows would understate 2025. A peril-level projection handles IBNR, IBNER and trend explicitly | Holdout D² for relativities; level checked against 2021–2024 rates | — |
+| 16 | 21 Oct | **IBNR by peril** for the level (delay pattern from 2021 losses) | Bodily injury and subsidence report far later than other perils (2024 completeness 56% and 69%) | — | — |
+| 17 | 21 Oct | **Weather: 2021–2024 average and prior year only; 2025 weather not used** | The file contains 2025 weather. It is not known when the 2025 price is set, so using it is leakage, even if it would raise the leaderboard score | — | Organisers state that 2025 weather is meant as a forecast input |
+| 18 | 21 Oct | Drop `previous_insurer` | 37 levels with near-identical frequency; it was the top contents feature by gain, i.e. the GBM was fitting noise. Contents holdout D² rose from 0.069 to 0.078 when removed | Holdout | — |
+
+## Holdout results (21 Oct, LightGBM Tweedie per line, D² after rescaling to actual total)
+
+| Line | Train 2021–22 → test 2023 | Train 2021–23 → test 2024 | Top features |
+|---|---|---|---|
+| Motor | 0.074 | 0.068 | make_model, ncb_years, years_licensed, driver_age, occupation, annual_mileage |
+| Buildings | 0.105 | 0.104 | occupation, flood_zone, elevation_m, sum_insured, region, distance_to_river_km |
+| Contents | 0.086 | 0.089 | flood_zone, sum_insured, occupation, elevation_m, region |
+
+2025 level (cost per exposure year): motor 662.8, buildings 528.1, contents 123.9. History after repairs: motor 564/576/537/486 (2021–24, later years immature), buildings 384/403/433/473, contents 106/106/117/120.
+
+**Submission 1 (21 Oct):** `sub01_gbm_level.csv`.
+
+## To review next
+- Occupation is the top buildings feature (severity 7.9k–10.3k by occupation). Check whether it is genuine or a proxy, and test dropping it.
+- Measure what same-year weather would add on the holdout, to quantify the trap for the write-up.
+- GLM benchmark per line; blend.
+- Level backtest and sensitivity (severity trend ±2%, BI IBNER 1.0/1.1).
+
 
 ## Findings so far
 

@@ -74,3 +74,23 @@ def test_policy_excludes_leakage_and_fairness_fields():
         assert f in EXCLUDE
     assert "renewal_decision" in leakage_suspects(["renewal_decision", "ncb_years"])
     assert leakage_suspects(["ncb_years", "driver_age", "flood_zone", "prior_claims_5y"]) == []
+
+
+def test_duplicate_claims_dropped(toy):
+    _, clm = toy
+    dup = clm.iloc[[0]].assign(claim_id="C999999999")
+    out, n = target.drop_duplicate_claims(pd.concat([clm, dup]))
+    assert n == 1 and len(out) == len(clm)
+
+
+def test_exposure_repaired_from_dates():
+    from iaa.load import repair_exposure
+    df = pd.DataFrame({"period_start": [T("2021-01-01"), T("2021-02-08"), T("2021-07-01")],
+                       "period_end": [T("2021-12-31"), T("2021-12-31"), T("2021-12-31")],
+                       "exposure": [1.0139, 327.0, 184 / 365]})  # 360-day basis, days, correct
+    out, n = repair_exposure(df)
+    assert n == 2 and out["exposure"].max() <= 1.0 and out["exposure"].iloc[2] == pytest.approx(184 / 365)
+
+
+def test_marital_status_not_flagged_as_leakage():
+    assert leakage_suspects(["marital_status", "claim_status"]) == ["claim_status"]
