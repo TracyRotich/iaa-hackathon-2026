@@ -132,8 +132,10 @@ class Design:
 # --------------------------------------------------------------------------- model
 
 class FreqSevGLM:
-    def __init__(self, alpha_freq=1e-4, alpha_sev=1e-3, kappa=None):
-        self.alpha_freq, self.alpha_sev, self.kappa = alpha_freq, alpha_sev, kappa
+    def __init__(self, alpha_freq=1e-4, alpha_sev=1e-3, kappa=None, backfit=False):
+        """backfit=True: high-cardinality factors are credibility-smoothed on actual/expected
+        relative to a first GLM fitted without them (backfitting), so their effect is not double-counted with correlated ordinary factors."""
+        self.alpha_freq, self.alpha_sev, self.kappa, self.backfit = alpha_freq, alpha_sev, kappa, backfit
 
     def fit(self, X, n_claims, cost, exposure):
         n = np.asarray(n_claims, float); c = np.asarray(cost, float); e = np.asarray(exposure, float)
@@ -142,12 +144,37 @@ class FreqSevGLM:
         sev_mean = c[pos].sum() / n[pos].sum()
         sev_var = np.average((c[pos] / n[pos] - sev_mean) ** 2, weights=n[pos])
         self.enc_f, self.enc_s, tf, ts = {}, {}, {}, {}
+        if self.backfit and self.design.te:
+            return self._fit_backfit(X, n, c, e, pos)
         for col in self.design.te:
             ef = CredibilityEncoder(self.kappa).fit(X[col], n, e, process_var=n.sum() / e.sum())
             es = CredibilityEncoder(self.kappa).fit(X[col], c, n, process_var=sev_var)
             self.enc_f[col], self.enc_s[col] = ef, es
             tf[col] = np.clip(ef.transform_train(X[col], n, e), 1e-6, None)
             ts[col] = np.clip(es.transform_train(X[col], c, n), 1e-6, None)
+        Xf = self.design.transform(X, tf)
+        self.freq = PoissonRegressor(alpha=self.alpha_freq, max_iter=300).fit(Xf, n / e, sample_weight=e)
+        Xs = self.design.transform(X[pos], {k: v[pos] for k, v in ts.items()})
+        self.sev = GammaRegressor(alpha=self.alpha_sev, max_iter=300).fit(Xs, c[pos] / n[pos], sample_weight=n[pos])
+        return self
+
+    def _fit_backfit(self, X, n, c, e, pos):
+        base = [col for col in X.columns if col not in self.design.te]
+        self.base = FreqSevGLM(self.alpha_freq, self.alpha_sev).fit(X[base], n, c, e)
+        Xb = X[base]
+        mu_n = self.base.freq.predict(self.base.design.transform(Xb, {})) * e
+        mu_s = self.base.sev.predict(self.base.design.transform(Xb, {}))
+        ys = np.where(pos, c / mu_s, 0.0)  # cost in units of expected severity
+        phi = np.sum(n[pos] * (c[pos] / (n[pos] * mu_s[pos]) - 1) ** 2) / n[pos].sum()
+        tf, ts = {}, {}
+        for col in self.design.te:
+            ef = CredibilityEncoder(self.kappa).fit(X[col], n, mu_n, process_var=1.0)
+            es = CredibilityEncoder(self.kappa).fit(X[col][pos], ys[pos], n[pos], process_var=phi)
+            self.enc_f[col], self.enc_s[col] = ef, es
+            tf[col] = np.clip(ef.transform_train(X[col], n, mu_n), 1e-6, None)
+            s_tr = np.full(len(n), es.mean_)
+            s_tr[pos] = es.transform_train(X[col][pos], ys[pos], n[pos])
+            ts[col] = np.clip(s_tr, 1e-6, None)
         Xf = self.design.transform(X, tf)
         self.freq = PoissonRegressor(alpha=self.alpha_freq, max_iter=300).fit(Xf, n / e, sample_weight=e)
         Xs = self.design.transform(X[pos], {k: v[pos] for k, v in ts.items()})

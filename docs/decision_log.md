@@ -75,6 +75,13 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 | 19 | 21 Oct | Drop occupation from buildings | Credibility κ = ∞; no holdout loss when removed; fairness | Holdout | — |
 | 20 | 21 Oct | **Submission 2** = per-line blend of LightGBM and GLM (motor 0.3 / buildings 0.7 / contents 0.5 on GBM), rescaled to the same 2025 level | Best holdout D² on every line; weights stable across both holdouts | Holdout tables above | — |
 
+## Sums insured, credibility smoothing and trend (21 Oct)
+
+| 21 | 21 Oct | On-level sums insured to 2021 money (index from same-policy growth: 3% buildings, 2% contents) | 2025 values otherwise sit above the training range for tree splits | GBM holdout D² up on both years for both lines | — |
+| 22 | 21 Oct | Backfitted credibility smoothing for make_model and occupation in the GLM | one-way encoding double-counts effects shared with age and other factors | Motor GLM D² +0.0004 / +0.0002; motor occupation κ ~150 → ~600; contents occupation κ = ∞ | — |
+| 23 | 21 Oct | Keep the all-in severity trend; report median and mix-adjusted trends as the assumption range |  | Level moves −5% to +4% across methods | Organisers' view on trend |
+| 24 | 21 Oct | **Submission 3** = submission 2 + decisions 21–22 | Small, consistent holdout gains; principled | `run_part1_v2.py --gi-methods`; sub02 still reproduces byte-identically | — |
+
 ## Findings so far
 
 - **16 Oct, synthetic data:** with a 5% a year trend and no trend term, the GLM predicted 83% and LightGBM 78% of the held-out total. The 2025 projection needs an explicit trend step, checked on the holdout before use. Default LightGBM overfits small data (D² 0.002 vs GLM 0.072): tune with early stopping.

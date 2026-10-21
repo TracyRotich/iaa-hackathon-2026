@@ -54,13 +54,17 @@ def _trend(years, values, weights):
     return float(np.exp(b[0]) - 1)
 
 
-def project(claims, exposure_by_line_year, freq_trend=True):
+def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=None,
+            long_tail_base=None, cap=None):
     """claims: cleaned claims (no duplicates). exposure_by_line_year: DataFrame line, year, exposure.
 
     Returns (peril_table, line_table). line_table has the 2025 cost per exposure year.
+    The keyword arguments exist for sensitivity testing (scripts/uncertainty.py); defaults = base case.
     """
+    cap = LARGE_CAP if cap is None else cap
+    lt_base = BASE_YEARS_LONG_TAIL if long_tail_base is None else long_tail_base
     c = claims[claims["status"] != "repudiated"].copy()
-    c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0, upper=LARGE_CAP)
+    c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0, upper=cap)
     c["loss_year"] = c["loss_date"].dt.year
     c = c[c["loss_year"].between(2021, 2024)]
 
@@ -82,10 +86,12 @@ def project(claims, exposure_by_line_year, freq_trend=True):
         yr = s.groupby("loss_year").apply(lambda g: np.average(g["rel"], weights=g["n"]))
         wt = s.groupby("loss_year")["n"].sum()
         sev_trend[line] = _trend(yr.index, yr.values, wt.values)
+    if sev_trend_override:
+        sev_trend.update(sev_trend_override)
 
     rows = []
     for (line, peril), g in stats.groupby(["line", "peril"]):
-        base = BASE_YEARS_LONG_TAIL.get(peril, BASE_YEARS_DEFAULT)
+        base = lt_base.get(peril, BASE_YEARS_DEFAULT)
         b = g[g["loss_year"].isin(base)]
         t = sev_trend[line]
         sev25 = np.average(b["sev"] * (1 + t) ** (PROJECTION_YEAR - b["loss_year"]), weights=b["n"])
