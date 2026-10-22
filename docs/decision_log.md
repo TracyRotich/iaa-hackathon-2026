@@ -110,3 +110,7 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 1. Trend to 2025: frequency and severity by line and peril from the 2021–2024 data (after IBNR).
 2. Whether 2025 weather appears in the weather table.
 3. Competition-specific rules not yet seen (team size, external data, AI tools, submissions per day): visible only after joining.
+
+## Open items (logged 23 Oct)
+1. **2025 level:** largest scoring risk; ±1 pp severity trend ≈ ±3% on predictions. Locked for Part 1 at close; report as uncertainty in the write-up and revisit for the Week 2 market.
+2. **Checks not yet run (write-up evidence, do not change Part 1 predictions):** calibration by price band (decile A/E), double lift chart sub02 vs sub03, proxy-fairness test (occupation, credit band, marital status), explanation charts (SHAP / partial dependence). Planned for Week 2.
