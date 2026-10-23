@@ -1,6 +1,6 @@
 """Holdout test: does the insurer's current written premium add predictive value?
 Compares v3-style GBM and GLM with and without log(written_premium) as a feature.
-Usage: test_written_premium.py <line>"""
+Usage: check_written_premium.py <line>"""
 import sys, json
 import numpy as np, pandas as pd
 from iaa import features, metrics, gbm

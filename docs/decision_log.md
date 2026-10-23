@@ -125,7 +125,7 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 
 The public ranking matches the holdout ranking: the GLM blend added +0.0056 and on-levelled sums insured and credibility smoothing a further +0.0006. Public scores sit above our per-line holdout scores (0.08–0.11) because Kaggle scores all three lines together: the constant baseline cannot separate motor (≈663) from contents (≈124), so part of the score comes from getting the line levels right. **Final Submission selected: v3.**
 
-| 25 | 23 Oct | **Keep written_premium excluded** (tested after seeing the leaderboard gap) | Adding log(written premium rate) to the v3 blend did not help consistently on the holdouts: blend D² change motor −0.0002 / +0.0005, buildings −0.0017 / −0.0011, contents −0.0001 / +0.0007 (2023 / 2024). The current tariff adds no reliable information beyond our rating factors, and using it would make the model depend on the old prices | `scripts/test_written_premium.py` | — |
+| 25 | 23 Oct | **Keep written_premium excluded** (tested after seeing the leaderboard gap) | Adding log(written premium rate) to the v3 blend did not help consistently on the holdouts: blend D² change motor −0.0002 / +0.0005, buildings −0.0017 / −0.0011, contents −0.0001 / +0.0007 (2023 / 2024). The current tariff adds no reliable information beyond our rating factors, and using it would make the model depend on the old prices | `scripts/check_written_premium.py` | — |
 
 ## Further method tests (23 Oct)
 
