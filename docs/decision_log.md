@@ -135,3 +135,21 @@ The public ranking matches the holdout ranking: the GLM blend added +0.0056 and 
 | 29 | 23 Oct | Keep buildings credit band, marital status, missed payments, household size | Individually neutral, but dropping all four costs −0.0011 in both years | `scripts/final_candidates.py buildings` | — |
 | 30 | 23 Oct | Log but do not adjust: 10 claims above sum insured (open case estimates above limit), 0.3% impossible licence years | Immaterial (≤0.03% of incurred; no frequency difference); flagged as data-quality findings | Data checks | — |
 | 31 | 23 Oct | **Submission 4** = submission 3 + decision 26 (motor only) | Buildings and contents identical to v3; motor total unchanged | Validation script; `run_part1_v2.py --gi-methods --motor-cap` | — |
+
+## Review of submission 4 (23 Oct)
+
+Concern raised in review: capping motor claims at 25k and rescaling proportionally spreads large-loss cost in proportion to *attritional* cost. On the 2025 test rows this lowered third-party-only by 9.7%, third-party fire & theft by 4.8% and drivers aged 17–21 by 3.4% compared with v3. Every motor policy carries third-party liability, which is where large bodily-injury claims arise.
+
+Test (`scripts/check_large_loss_allocation.py`): three ways to allocate the cost above 25k, compared with the uncapped v3 method on both holdouts (actual / expected; 1.00 = right):
+
+| | U: uncapped (v3) | A: proportional (v4) | B: uniform load per exposure | C: load ∝ uncapped model |
+|---|---|---|---|---|
+| D² 2023 / 2024 | 0.0905 / 0.0819 | **0.0916 / 0.0840** | 0.0889 / 0.0818 | **0.0916 / 0.0838** |
+| Third-party only | 1.06 / 0.84 | 1.15 / 0.94 | 1.12 / 0.91 | 1.14 / 0.92 |
+| Third-party fire & theft | 0.90 / 0.78 | 0.95 / 0.83 | 0.94 / 0.81 | 0.94 / 0.82 |
+| Age 17–21 | 1.00 / 1.00 | 1.04 / 1.04 | 1.14 / 1.13 | 1.04 / 1.03 |
+| Age 21–25 | 0.91 / 0.87 | 0.93 / 0.89 | 0.99 / 0.94 | 0.93 / 0.89 |
+
+Findings: (1) the D² gain of v4 is real and holds whichever allocation is used, except a uniform load (B), which is worse; (2) the concern is partly confirmed: v4 under-prices drivers aged 17–21 by about 4% on both holdouts, where v3 was right; (3) but it improves third-party fire & theft and ages 21–25 in both years, and third-party only is noisy (under in 2023, over in 2024 for every method); (4) C is the most defensible allocation in principle but performs the same as A.
+
+| 32 | 23 Oct | **Keep submission 4 as built (allocation A)**; record the young-driver effect as a known limitation | D² better on both holdouts; segment A/E mixed rather than worse overall; C no better in practice | Allocation test above; v4 and v3 both reproduce byte-identically | Part 2: if young-driver A/E stays above 1.03, allocate the large-loss load by bodily-injury frequency instead |

@@ -19,6 +19,7 @@ Every AI suggestion that affected the work, with the human decision and the chec
 | 13 | 23 Oct | Leaderboard response | Claude | After placing 23rd (0.12545 vs leader 0.13033), suggested testing written premium as a feature rather than tuning to the 33% public slice | Reject the feature: mixed holdout results, worse for buildings | Holdout D² on 2023 and 2024 for all three lines | Kept v3; avoided chasing the public leaderboard |
 | 14 | 23 Oct | Further methods | Claude | Proposed six further testable ideas (cap, excess, seasonality, Tweedie GLM, splines, factor review) | Accept one (motor 25k cap); reject five on holdout evidence | 2 holdout years × 3 lines for every idea; final confirmation run | Submission 4 |
 | 15 | 23 Oct | Factor review | Claude | Individually neutral buildings factors looked droppable | Reject: joint drop tested and cost −0.0011 in both years | Joint ablation | Avoided an over-simplification |
-| 16 | | | | | | | |
+| 16 | 23 Oct | Self-review | Claude | On review, flagged its own v4 design: proportional rescaling may under-price third-party-only cover and young drivers | Tested three allocations against holdout A/E; kept v4, documented a ~4% young-driver under-pricing | Holdout A/E by cover type and age band, both years | Limitation found and quantified before the write-up |
+| 17 | | | | | | | |
 
 **Rule for myself:** no AI-written number, feature or claim goes into the write-up until I have reproduced it or checked it against the data.
