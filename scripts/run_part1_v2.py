@@ -1,6 +1,8 @@
 """Submission 2: per line, blend of LightGBM and a Poisson x Gamma GLM, rescaled to the
 2025 level. Blend weights chosen on the 2023 holdout and confirmed on 2024.
-Usage: run_part1_v2.py <out_csv> [--gi-methods]
+Usage: run_part1_v2.py <out_csv> [--gi-methods] [--motor-cap]
+--motor-cap (submission 4) trains the motor relativity models on claims capped at 25k (basic limits);
+the level is unchanged, so large-loss cost is spread across policies in proportion to their relativity.
 --gi-methods (submission 3) adds two methods that improved both
 holdouts: sum insured on-levelled to 2021 money (s.10.3.2) and backfitted credibility smoothing of
 high-cardinality factors in the GLM (s.28.1.2)."""
@@ -10,6 +12,7 @@ from iaa import features, submission, guards, gbm
 from iaa.glm import FreqSevGLM
 
 GI_METHODS = "--gi-methods" in sys.argv
+MOTOR_CAP = 25_000 if "--motor-cap" in sys.argv else None  # basic-limit cap for motor relativities (deep_tests, 23 Oct)
 
 
 def si_growth(tr):
@@ -35,8 +38,12 @@ for line, cfg in CONFIG.items():
         report_si = round(g, 4)
     else:
         report_si = None
-    p_gbm = gbm.fit_predict(line, tr, te, feats, cfg["te_make_model"])
-    g = FreqSevGLM(backfit=GI_METHODS).fit(tr[feats], tr.n_claims / tr.completeness, tr.reported_cost, tr.exposure)
+    tr_fit = tr
+    if MOTOR_CAP and line == "motor":
+        rep = tr.reported_cost.clip(upper=MOTOR_CAP)
+        tr_fit = tr.assign(reported_cost=rep, claim_cost=rep / tr.completeness)
+    p_gbm = gbm.fit_predict(line, tr_fit, te, feats, cfg["te_make_model"])
+    g = FreqSevGLM(backfit=GI_METHODS).fit(tr_fit[feats], tr_fit.n_claims / tr_fit.completeness, tr_fit.reported_cost, tr_fit.exposure)
     p_glm = g.predict(te[feats], te.exposure)
     mix = cfg["w_gbm"] * p_gbm / p_gbm.sum() + (1 - cfg["w_gbm"]) * p_glm / p_glm.sum()
     pred = mix * level[line] * te.exposure.sum()

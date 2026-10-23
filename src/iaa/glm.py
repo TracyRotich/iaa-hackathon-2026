@@ -23,6 +23,7 @@ from sklearn.preprocessing import SplineTransformer
 
 HIGH_CARD = 15  # categoricals with more levels than this are target-encoded
 SPLINE_MIN_UNIQUE = 12
+N_KNOTS = 4  # spline flexibility (tested 4 vs 6 on holdouts, 23 Oct)
 
 
 # --------------------------------------------------------------------------- credibility
@@ -102,7 +103,7 @@ class Design:
         self.splines = {}
         for c in self.spl:
             v = X[c].fillna(self.med[c]).clip(self.lo[c], self.hi[c]).to_numpy()[:, None]
-            self.splines[c] = SplineTransformer(n_knots=4, degree=3, knots="quantile",
+            self.splines[c] = SplineTransformer(n_knots=N_KNOTS, degree=3, knots="quantile",
                                                 extrapolation="linear", include_bias=False).fit(v)
         self.num_mean = X[self.num].fillna(self.med[self.num]).mean()
         self.num_sd = X[self.num].fillna(self.med[self.num]).std().replace(0, 1)

@@ -126,3 +126,12 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 The public ranking matches the holdout ranking: the GLM blend added +0.0056 and on-levelled sums insured and credibility smoothing a further +0.0006. Public scores sit above our per-line holdout scores (0.08–0.11) because Kaggle scores all three lines together: the constant baseline cannot separate motor (≈663) from contents (≈124), so part of the score comes from getting the line levels right. **Final Submission selected: v3.**
 
 | 25 | 23 Oct | **Keep written_premium excluded** (tested after seeing the leaderboard gap) | Adding log(written premium rate) to the v3 blend did not help consistently on the holdouts: blend D² change motor −0.0002 / +0.0005, buildings −0.0017 / −0.0011, contents −0.0001 / +0.0007 (2023 / 2024). The current tariff adds no reliable information beyond our rating factors, and using it would make the model depend on the old prices | `scripts/test_written_premium.py` | — |
+
+## Further method tests (23 Oct)
+
+| 26 | 23 Oct | **Motor basic limit:** relativity models trained on claims capped at 25k; level unchanged | Increased-limits practice: large BI claims are largely random with respect to rating factors | Holdout blend D² +0.0011 / +0.0021 (10k–150k all positive; 25k best overall). Home lines tested and rejected | Part 2 data shows predictable large losses |
+| 27 | 23 Oct | Keep frequency × severity rather than Tweedie GLM | Motor GLM 0.0906 vs 0.0868 (2023), 0.0818 vs 0.0804 (2024); home lines about equal | `scripts/deep_tests.py tweedie` | — |
+| 28 | 23 Oct | Reject total-excess feature, seasonality shares, 6-knot splines | No consistent holdout gain; Ockham | `scripts/deep_tests.py` | — |
+| 29 | 23 Oct | Keep buildings credit band, marital status, missed payments, household size | Individually neutral, but dropping all four costs −0.0011 in both years | `scripts/final_candidates.py buildings` | — |
+| 30 | 23 Oct | Log but do not adjust: 10 claims above sum insured (open case estimates above limit), 0.3% impossible licence years | Immaterial (≤0.03% of incurred; no frequency difference); flagged as data-quality findings | Data checks | — |
+| 31 | 23 Oct | **Submission 4** = submission 3 + decision 26 (motor only) | Buildings and contents identical to v3; motor total unchanged | Validation script; `run_part1_v2.py --gi-methods --motor-cap` | — |
