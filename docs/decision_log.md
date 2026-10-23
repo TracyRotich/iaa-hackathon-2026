@@ -114,3 +114,13 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 ## Open items (logged 23 Oct)
 1. **2025 level:** largest scoring risk; ±1 pp severity trend ≈ ±3% on predictions. Locked for Part 1 at close; report as uncertainty in the write-up and revisit for the Week 2 market.
 2. **Checks not yet run (write-up evidence, do not change Part 1 predictions):** calibration by price band (decile A/E), double lift chart sub02 vs sub03, proxy-fairness test (occupation, credit band, marital status), explanation charts (SHAP / partial dependence). Planned for Week 2.
+
+## Kaggle public leaderboard (23 Oct, Part 1)
+
+| Submission | Public D² | Holdout ranking agreed? |
+|---|---|---|
+| submission01_gbm_level (v1) | 0.11933 | — |
+| submission02_blend_glm_gbm (v2) | 0.12489 | yes (v2 > v1) |
+| submission03_blend_pricing_concepts_applied (v3) | **0.12545** | yes (v3 > v2) |
+
+The public ranking matches the holdout ranking: the GLM blend added +0.0056 and on-levelled sums insured and credibility smoothing a further +0.0006. Public scores sit above our per-line holdout scores (0.08–0.11) because Kaggle scores all three lines together: the constant baseline cannot separate motor (≈663) from contents (≈124), so part of the score comes from getting the line levels right. **Final Submission selected: v3.**
