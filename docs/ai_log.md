@@ -21,6 +21,7 @@ Every AI suggestion that affected the work, with the human decision and the chec
 | 15 | 23 Oct | Factor review | Claude | Individually neutral buildings factors looked droppable | Reject: joint drop tested and cost −0.0011 in both years | Joint ablation | Avoided an over-simplification |
 | 16 | 23 Oct | Self-review | Claude | On review, flagged its own v4 design: proportional rescaling may under-price third-party-only cover and young drivers | Tested three allocations against holdout A/E; kept v4, documented a ~4% young-driver under-pricing | Holdout A/E by cover type and age band, both years | Limitation found and quantified before the write-up |
 | 17 | 23 Oct | Cross-model review | Codex (second AI) | Eight findings on Claude's pipeline, incl. validation weather leakage (R2) and IBNR cancelling in the GLM (R4); built a challenger submission | Accept all eight after checking each in the code or numerically; two are genuine bugs in Claude's work | Code inspection; Tweedie identity check; challenger CSV validated | Strong evidence of AI-on-AI verification for the write-up |
-| 18 | | | | | | | |
+| 18 | 23 Oct | Final selection | Claude | Select v5 (Codex challenger) over v4 although v4 led on the public board, because the public gap was noise and v5 won on both holdout years | Accept | Private leaderboard after close | v5 private 0.13293 vs v4 0.13231 (+0.00062, close to the ~0.00075 holdout estimate); the public board had them the wrong way round |
+| 19 | | | | | | | |
 
 **Rule for myself:** no AI-written number, feature or claim goes into the write-up until I have reproduced it or checked it against the data.

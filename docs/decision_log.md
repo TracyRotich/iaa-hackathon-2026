@@ -175,3 +175,15 @@ Codex challenger (`codex_challenger.csv`): same line totals as v4. It uses the c
 | 34 | 23 Oct | Treat `codex_challenger.csv` as a credible Part 1 candidate: small, consistent local gains; it corrects R2 and R4 | Selection fixed in advance by Codex (choose on 2023, confirm on 2024) | Its validation_results.csv; our file checks | Public score lower than v3/v4 |
 
 Correction to the wording of decision 26: the motor "25k cap" caps each **row's** total reported cost at 25k, not each claim.
+
+## Part 1 result (23 Oct, after close)
+
+| Submission | Private (~67%) | Public (~33%) |
+|---|---|---|
+| v5 `submission05_review_fixes_blend` (**selected**) | **0.13293** | 0.12552 |
+| v4 `submission04_motor_basic_limit` | 0.13231 | **0.12578** |
+| v3 `submission03_blend_pricing_concepts_applied` | 0.13227 | 0.12545 |
+
+Final private rank 34 (public rank at close 29).
+
+| 35 | 23 Oct | **Selected v5 over v4** despite v4's higher public score | Public gap (0.00026) within noise on a 33% slice; v5 gained ~0.00075 on both full holdout years and fixes R2/R4 | Private result: v5 beat v4 by +0.00062, close to the holdout estimate; the public board ranked them the wrong way round | Lesson for Part 2: select on out-of-time holdouts, not the public leaderboard |
