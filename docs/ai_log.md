@@ -16,6 +16,7 @@ Every AI suggestion that affected the work, with the human decision and the chec
 | 10 | 21 Oct | Bug | Claude's GLM code | Gamma fit failed on motor: some claiming rows net to zero after recoveries | Fix: severity fitted only on rows with positive cost | Error traced to rows with recoveries = incurred | — |
 | 11 | 21 Oct | Pricing methods | Claude | From reference material supplied by Tracy Rotich, proposed: on-level sums insured, backfitted credibility, three severity-trend methods, open vs closed IBNER check, an uncertainty analysis | Accept the two that improved both holdouts; keep the trend methods as a sensitivity range rather than switching | Holdout ablations; sub02 rerun byte-identical after code changes | Submission 3 |
 | 12 | 21 Oct | Interpretation | Claude | Mix-adjusted buildings trend (5.6%) is below the one used (7.4%) | Reject switching: the gap is sums-insured growth, which belongs in the 2025 level | Checked same-policy sum-insured growth = exactly 3% a year | Avoided understating buildings by ~5% |
-| 13 | | | | | | | |
+| 13 | 23 Oct | Leaderboard response | Claude | After placing 23rd (0.12545 vs leader 0.13033), suggested testing written premium as a feature rather than tuning to the 33% public slice | Reject the feature: mixed holdout results, worse for buildings | Holdout D² on 2023 and 2024 for all three lines | Kept v3; avoided chasing the public leaderboard |
+| 14 | | | | | | | |
 
 **Rule for myself:** no AI-written number, feature or claim goes into the write-up until I have reproduced it or checked it against the data.
