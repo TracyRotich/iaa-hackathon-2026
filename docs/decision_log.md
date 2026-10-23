@@ -153,3 +153,25 @@ Test (`scripts/check_large_loss_allocation.py`): three ways to allocate the cost
 Findings: (1) the D² gain of v4 is real and holds whichever allocation is used, except a uniform load (B), which is worse; (2) the concern is partly confirmed: v4 under-prices drivers aged 17–21 by about 4% on both holdouts, where v3 was right; (3) but it improves third-party fire & theft and ages 21–25 in both years, and third-party only is noisy (under in 2023, over in 2024 for every method); (4) C is the most defensible allocation in principle but performs the same as A.
 
 | 32 | 23 Oct | **Keep submission 4 as built (allocation A)**; record the young-driver effect as a known limitation | D² better on both holdouts; segment A/E mixed rather than worse overall; C no better in practice | Allocation test above; v4 and v3 both reproduce byte-identically | Part 2: if young-driver A/E stays above 1.03, allocate the large-loss load by bodily-injury frequency instead |
+
+## Independent review by a second AI model (Codex, 23 Oct)
+
+Tracy Rotich gave Codex the task brief, the data, and this repo. Its findings, each checked here:
+
+| # | Codex finding | Checked | Verdict |
+|---|---|---|---|
+| R1 | Holdout scores rescaled to the actual total hide level errors | Yes: by design; it added a forecast-level diagnostic | Valid. Report both in the write-up |
+| R2 | **Weather averages cross the time boundary in validation** (2023 holdout rows use a 2021–24 average); prior-year weather is missing only for 2021, so it acts as a year flag | Confirmed in `features.weather_features` (default 2021–24) | **Valid. Validation leakage only**; 2025 test features use past years, so the submissions are not leaked. Fix for Part 2 |
+| R3 | At Tweedie p = 1.5, row deviance = √exposure × rate deviance, so √exposure weights match the metric | Confirmed numerically | Valid nuance. Exposure weights remain the actuarial choice for the Poisson part |
+| R4 | **IBNR cancels in the GLM**: counts are divided by completeness but costs are not, so severity is understated and the product reverts to reported cost | Confirmed in `run_part1_v2.py` (GLM receives `reported_cost`) | **Valid bug.** The level is unaffected; relativities of recent rows are slightly distorted. Fix: pass `claim_cost` |
+| R5 | The motor 25k cap is applied to row cost, not individual claims; the 11.9m claim is not *proven* an error | Confirmed | Valid. Wording corrected below |
+| R6 | Row targets use line-level delay; the level uses peril-level delay | Confirmed | Valid. Reconcile in Part 2 |
+| R7 | The level includes claims unmatched to a row (296 motor, 67 buildings, 50 contents), while targets exclude them | Confirmed; most motor ones have 2020 loss dates, which the level drops anyway | Minor. Reconcile |
+| R8 | Splines are cubic B-splines (SplineTransformer), not natural splines; 2025 weather exclusion is an assumption, not a rule | Confirmed | Valid. Documentation corrected |
+
+Codex challenger (`codex_challenger.csv`): same line totals as v4. It uses the corrected GLM (motor), shallow √exposure-weighted boosting (buildings) and a frequency/severity GBM (contents), blended with v4. The local combined gain is +0.00077 (2023) and +0.00075 (2024), and the 95% bootstrap intervals per line include zero. File checked here: 626,639 rows, sample order, non-negative, totals equal to v4.
+
+| 33 | 23 Oct | Accept review findings R2, R4, R6–R8 as fixes for the Part 2 pipeline; R1 and R3 into write-up methodology | Independent review; each finding verified in code or numerically | Table above | — |
+| 34 | 23 Oct | Treat `codex_challenger.csv` as a credible Part 1 candidate: small, consistent local gains; it corrects R2 and R4 | Selection fixed in advance by Codex (choose on 2023, confirm on 2024) | Its validation_results.csv; our file checks | Public score lower than v3/v4 |
+
+Correction to the wording of decision 26: the motor "25k cap" caps each **row's** total reported cost at 25k, not each claim.
