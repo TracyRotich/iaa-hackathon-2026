@@ -1,6 +1,12 @@
 """Central settings, from the Kaggle Data tab (16 Oct 2026)."""
 
+import os
+
 import pandas as pd
+
+# Market folders. Developed (Part 1) is the default; for Part 2 set IAA_DATA=data/emerging.
+DATA_DIR = os.environ.get("IAA_DATA", "data")
+WORK_DIR = os.environ.get("IAA_WORK", os.path.join(DATA_DIR, "work"))
 
 SEED = 20261016
 TWEEDIE_POWER = 1.5  # competition metric power; also used for model loss

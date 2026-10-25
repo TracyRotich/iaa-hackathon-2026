@@ -1,9 +1,10 @@
 """Row-level feature frame for one line: policy row + customer + address + historical weather.
 
-Weather: each address gets its 2021-2024 average and its prior-year value. Same-year weather
-is NOT used, because 2025 weather is not known when the 2025 price is set (the file does contain
-2025, which is the trap). The holdout test in run_part1.py measures what same-year weather would
-have added, for the write-up.
+Weather: each address gets its average over past years and its prior-year value. Same-year weather
+is NOT used: a price for 2025 is set before 2025 weather is observed. The weather file does
+contain 2025; excluding it is our information-timing assumption, not a stated competition rule,
+and the organisers have not clarified it (review finding R8). For validation, time_safe_weather
+rebuilds the averages from years before the scored year (finding R2).
 """
 
 import numpy as np
@@ -22,6 +23,20 @@ def weather_features(weather, hist_years=(2021, 2022, 2023, 2024)):
     hist = (weather[weather["year"].isin(hist_years)].groupby("address_id")[WEATHER_VARS]
             .mean().add_prefix("wx_avg_"))
     return hist
+
+
+def time_safe_weather(tr, te, weather, cutoff):
+    """Review fix R2 (Codex, 23 Oct). Rebuild the weather averages from years before `cutoff`
+    only, so a validation year never sees its own or later weather. For the 2025 submission
+    (cutoff 2025) this equals the original 2021-2024 average.
+    Also returns a feature filter that drops prior-year weather: it is missing only for the
+    first policy year, so a model can use the missingness as a year flag."""
+    wx = weather_features(weather, hist_years=tuple(y for y in sorted(weather["year"].unique()) if y < cutoff))
+    tr, te = tr.copy(deep=False), te.copy(deep=False)
+    for f in (tr, te):
+        for c in wx.columns:
+            f[c] = f["address_id"].map(wx[c])
+    return tr, te, (lambda feats: [c for c in feats if not c.startswith("wx_prev_")])
 
 
 def prior_year_weather(weather):

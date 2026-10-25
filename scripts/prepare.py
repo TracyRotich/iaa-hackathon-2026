@@ -6,8 +6,10 @@ import pandas as pd
 
 from iaa import features, load, target
 from iaa.level import LARGE_CAP
+from iaa import config
+WORK = config.WORK_DIR
 
-out = Path("data/work"); out.mkdir(parents=True, exist_ok=True)
+out = Path(WORK); out.mkdir(parents=True, exist_ok=True)
 claims = load.read("claims")
 customers = load.read("customers")
 addresses = load.read("addresses")
@@ -29,4 +31,4 @@ for line in ("motor", "buildings", "contents"):
     tr.to_parquet(out / f"{line}_train.parquet"); te.to_parquet(out / f"{line}_test.parquet")
     print(line, tr.shape, te.shape, diag)
 
-Path("data/work/diagnostics.json").write_text(json.dumps(diag_all, indent=2, default=float))
+Path(f"{WORK}/diagnostics.json").write_text(json.dumps(diag_all, indent=2, default=float))

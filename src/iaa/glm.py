@@ -8,8 +8,9 @@ Frequency x severity per line:
 
 Pre-processing, all fitted on training data only and frozen for test (no leakage):
 - Numeric features with many values: clipped at the training 1st/99th percentiles,
-  missing values set to the training median plus a missing flag, then natural-style cubic
-  splines (knots at training quantiles, as ns(df=3) in R).
+  missing values set to the training median plus a missing flag, then cubic B-splines
+  (sklearn SplineTransformer, knots at training quantiles, linear extrapolation). These play the
+  role of ns() in R but are not natural splines (review finding R8).
 - Low-cardinality categoricals: one-hot, with missing as its own level.
 - High-cardinality categoricals: actuarial target encoding (credibility-weighted towards the
   portfolio mean, leave-one-out on training rows). kappa is estimated by Buhlmann-Straub

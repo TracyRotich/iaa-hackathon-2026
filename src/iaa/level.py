@@ -35,6 +35,20 @@ SHORT_TAIL_FOR_TREND = {
 }
 
 
+def history_settings(years):
+    """Year choices for the level, derived from the years in the data. For the developed market
+    (2021-2024) this returns exactly the settings used in Part 1. For a shorter history (the
+    emerging market has 2023-2024 only) the same rules are applied mechanically; those choices
+    must be reviewed against the data before use (2 years cannot support a fitted trend)."""
+    years = tuple(sorted(int(y) for y in years))
+    if years == (2021, 2022, 2023, 2024):
+        return {"years": years, "ref_year": 2021, "trend_years": TREND_YEARS, "base_default": BASE_YEARS_DEFAULT,
+                "base_long_tail": BASE_YEARS_LONG_TAIL, "freq_years": (2022, 2023, 2024)}
+    lt = years[:max(1, len(years) - 2)]
+    return {"years": years, "ref_year": years[0], "trend_years": years, "base_default": years[:-1] or years,
+            "base_long_tail": {"bodily_injury": lt, "subsidence": lt}, "freq_years": years[-3:]}
+
+
 def peril_completeness(claims, years=(2021, 2022, 2023, 2024), ref_year=2021):
     """Share of each loss year's claims reported by the valuation date, by line and peril."""
     c = claims.assign(delay=(claims["report_date"] - claims["loss_date"]).dt.days)
@@ -55,23 +69,24 @@ def _trend(years, values, weights):
 
 
 def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=None,
-            long_tail_base=None, cap=None):
+            long_tail_base=None, cap=None, settings=None):
     """claims: cleaned claims (no duplicates). exposure_by_line_year: DataFrame line, year, exposure.
 
     Returns (peril_table, line_table). line_table has the 2025 cost per exposure year.
     The keyword arguments exist for sensitivity testing (scripts/uncertainty.py); defaults = base case.
     """
     cap = LARGE_CAP if cap is None else cap
-    lt_base = BASE_YEARS_LONG_TAIL if long_tail_base is None else long_tail_base
+    st = settings or history_settings(exposure_by_line_year["year"].unique())
+    lt_base = st["base_long_tail"] if long_tail_base is None else long_tail_base
     c = claims[claims["status"] != "repudiated"].copy()
     c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0, upper=cap)
     c["loss_year"] = c["loss_date"].dt.year
-    c = c[c["loss_year"].between(2021, 2024)]
+    c = c[c["loss_year"].between(st["years"][0], st["years"][-1])]
 
     stats = c.groupby(["line", "peril", "loss_year"]).agg(
         n=("value", "size"), sev=("value", "mean"),
         open_share=("status", lambda s: (s == "open").mean())).reset_index()
-    stats = stats.merge(peril_completeness(claims), on=["line", "peril", "loss_year"])
+    stats = stats.merge(peril_completeness(claims, st["years"], st["ref_year"]), on=["line", "peril", "loss_year"])
     stats = stats.merge(exposure_by_line_year.rename(columns={"year": "loss_year"}),
                         on=["line", "loss_year"])
     stats["n_ult"] = stats["n"] / stats["completeness"]
@@ -80,7 +95,7 @@ def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=N
     sev_trend = {}
     for line, perils in SHORT_TAIL_FOR_TREND.items():
         s = stats[(stats["line"] == line) & stats["peril"].isin(perils)
-                  & stats["loss_year"].isin(TREND_YEARS)]
+                  & stats["loss_year"].isin(st["trend_years"])]
         # Chain a weighted index across perils: severity relative to each peril's own mean.
         s = s.assign(rel=s["sev"] / s.groupby("peril")["sev"].transform("mean"))
         yr = s.groupby("loss_year").apply(lambda g: np.average(g["rel"], weights=g["n"]))
@@ -91,16 +106,16 @@ def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=N
 
     rows = []
     for (line, peril), g in stats.groupby(["line", "peril"]):
-        base = lt_base.get(peril, BASE_YEARS_DEFAULT)
+        base = lt_base.get(peril, st["base_default"])
         b = g[g["loss_year"].isin(base)]
         t = sev_trend[line]
         sev25 = np.average(b["sev"] * (1 + t) ** (PROJECTION_YEAR - b["loss_year"]), weights=b["n"])
-        f = g[g["loss_year"].isin((2022, 2023, 2024))]
+        f = g[g["loss_year"].isin(st["freq_years"])]
         freq25 = np.average(f["freq"], weights=f["exposure"])
         ft = _trend(g["loss_year"], g["freq"], g["exposure"])
         ft_used = float(np.clip(ft, -FREQ_TREND_CLIP, FREQ_TREND_CLIP)) if freq_trend else 0.0
         if freq_trend:
-            freq25 *= (1 + ft_used) ** (PROJECTION_YEAR - 2023)
+            freq25 *= (1 + ft_used) ** (PROJECTION_YEAR - float(np.mean(st["freq_years"])))
         rows.append({"line": line, "peril": peril, "freq_2025": freq25, "freq_trend_obs": ft, "freq_trend_used": ft_used,
                      "sev_trend_used": t, "sev_2025": sev25, "base_years": str(base),
                      "cost_rate_2025": freq25 * sev25})

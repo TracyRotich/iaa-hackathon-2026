@@ -187,3 +187,40 @@ Correction to the wording of decision 26: the motor "25k cap" caps each **row's*
 Final private rank 34 (public rank at close 29).
 
 | 35 | 23 Oct | **Selected v5 over v4** despite v4's higher public score | Public gap (0.00026) within noise on a 33% slice; v5 gained ~0.00075 on both full holdout years and fixes R2/R4 | Private result: v5 beat v4 by +0.00062, close to the holdout estimate; the public board ranked them the wrong way round | Lesson for Part 2: select on out-of-time holdouts, not the public leaderboard |
+
+## v5 ported into our own pipeline (25 Oct)
+
+The review fixes now live in `src/iaa` (`pipeline.py`, `features.time_safe_weather`, `gbm.fit_predict_variant`), run by `scripts/validate_v5.py` and `scripts/run_part1_v5.py`.
+
+**Reproduction check.** Holdout D² (allocation only, rescaled to the actual total):
+
+| Line | Year | v4 base (ours / Codex) | Challenger (ours / Codex) | v5 (ours / Codex) |
+|---|---|---|---|---|
+| Motor | 2023 | 0.09156 / 0.09158 | clean GLM 0.09208 / 0.09208 | 0.09220 / 0.09221 |
+| Motor | 2024 | 0.08402 / 0.08402 | 0.08458 / 0.08458 | 0.08464 / 0.08464 |
+| Buildings | 2023 | 0.10732 / 0.10732 | shallow GBM 0.10666 / 0.10666 | 0.10849 / 0.10849 |
+| Buildings | 2024 | 0.11080 / 0.11080 | 0.11142 / 0.11142 | 0.11217 / 0.11216 |
+| Contents | 2023 | 0.09331 / 0.09331 | freq-sev GBM 0.09179 / 0.09179 | 0.09384 / 0.09384 |
+| Contents | 2024 | 0.09377 / 0.09378 | 0.09091 / 0.09091 | 0.09380 / 0.09380 |
+
+Combined: v5 gains +0.00077 (2023) and +0.00075 (2024) over v4, as Codex reported.
+
+2025 file (`submission05_v5_own_pipeline.csv`) against `codex_challenger.csv`: same rows and order; line totals equal; buildings and contents identical; motor differs by a median 0.07% (max 0.5%). Cause traced: our v4 refit equals the v4 CSV to 1e-15, and every LightGBM model matches exactly, so the difference is the motor GLM, whose lbfgs solution differs slightly between Codex's Windows environment and ours (numpy/pandas versions, BLAS). Immaterial for pricing; the file from our pipeline is the reproducible version of v5.
+
+**Where the v5 gain comes from (decomposition, motor GLM, D² 2023 / 2024):**
+
+| GLM variant | 2023 | 2024 |
+|---|---|---|
+| Original (reported cost, leaky weather) | 0.09219 | 0.08454 |
+| R4 only (ultimate cost) | 0.09220 | 0.08453 |
+| R2 only (time-safe weather) | 0.09209 | 0.08459 |
+| Both (clean GLM) | 0.09208 | 0.08458 |
+
+R4 changes the motor score by ±0.00001: an IBNR correction matters little because few rows are immature. R2 lowers the 2023 score by 0.0001, which is the leak being removed (the old validation was slightly flattering), not a loss of real accuracy. **So the motor gain comes from moving weight to the GLM** (v5 motor is about 7.5% GBM / 92.5% GLM, against 30/70 in v4), not from the fixes. The buildings and contents gains come from the new challengers (shallow sqrt-weighted Tweedie GBM; frequency × severity GBM). R2-R4 are correctness fixes: they make the validation honest and the model internally consistent, which matters more in Part 2, where 2024 rows are a larger share of a two-year history.
+
+**R6 and R7 measured** (`scripts/check_level_reconciliation.py`): excluding unmatched claims from the level changes the 2025 rate by −0.16% motor, −0.17% buildings, −0.10% contents; line-level vs peril-level reporting patterns differ by at most 0.15 percentage points in completeness for any loss year. Both immaterial; level unchanged for Part 1. Part 2: one shared delay function for target and level.
+
+| 36 | 25 Oct | Port the v5 fixes and model choices into our own pipeline; keep v5 settings unchanged | Our code must reproduce the final submission; Part 2 builds on it | Holdout scores match Codex within 0.00003; 2025 file matches except a 0.07% median GLM numerical difference on motor | Pin scipy and threadpoolctl; consider a tighter GLM tolerance in Part 2 (changes outputs, so not applied to Part 1) |
+| 37 | 25 Oct | Describe v5's gain honestly in the write-up: fixes R2-R4 are correctness fixes; the score gain is from GLM weight (motor) and new challengers (buildings, contents) | Decomposition above | Single-fix runs on both holdouts | — |
+| 38 | 25 Oct | R6, R7: no change to the Part 1 level; R8: wording corrected in `glm.py` and `features.py` | Measured effects ≤ 0.17% | Reconciliation script | Part 2: shared delay function |
+| 39 | 25 Oct | Market folders (`IAA_DATA`, `IAA_WORK`) and data-derived level years (`level.history_settings`) for Part 2 | Emerging market has 2023-24 only | Developed level reproduces 662.78 / 528.10 / 123.88; new tests | Review every year setting against the emerging data before use; two years cannot support a fitted trend |

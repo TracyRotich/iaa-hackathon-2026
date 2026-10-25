@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from . import config
 from .config import ID_COLS
 
 DATE_COLS = ("period_start", "period_end", "loss_date", "report_date", "date_of_birth")
@@ -27,8 +28,8 @@ def repair_exposure(df):
     return df, int(changed.sum())
 
 
-def read(name, data_dir="data", fix_exposure=True):
-    df = pd.read_parquet(Path(data_dir) / f"{name}.parquet")
+def read(name, data_dir=None, fix_exposure=True):
+    df = pd.read_parquet(Path(data_dir or config.DATA_DIR) / f"{name}.parquet")
     for c in df.columns:
         if c in ID_COLS:
             df[c] = df[c].astype(str)
