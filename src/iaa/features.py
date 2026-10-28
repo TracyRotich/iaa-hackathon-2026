@@ -14,7 +14,7 @@ from .config import EXCLUDE
 
 CUSTOMER_KEEP = ["customer_id", "occupation", "marital_status", "household_size", "credit_band",
                  "prior_claims_5y", "licence_points", "years_at_address", "customer_since_year",
-                 "previous_insurer"]
+                 "previous_insurer", "gender"]  # gender: emerging only, excluded from features (config.EXCLUDE)
 WEATHER_VARS = ["hail_days", "wind_exposure_index", "freezing_days", "dry_summer_index",
                 "wildfire_index", "rainfall_mm", "mean_temperature_c"]
 
@@ -45,8 +45,12 @@ def prior_year_weather(weather):
     return w.set_index(["address_id", "year"])[WEATHER_VARS].add_prefix("wx_prev_")
 
 
-def build(rows, customers, addresses, wx_hist, wx_prev, same_year_weather=None):
-    df = rows.merge(customers[CUSTOMER_KEEP], on="customer_id", how="left")
+TEXT_FIELDS = ("occupation", "construction_type", "marital_status", "region", "soil_type", "property_type", "roof_type")
+
+
+def build(rows, customers, addresses, wx_hist, wx_prev, same_year_weather=None, normalise_text=True):
+    keep = [c for c in CUSTOMER_KEEP if c in customers.columns]  # markets differ (emerging: no credit_band)
+    df = rows.merge(customers[keep], on="customer_id", how="left")
     df = df.merge(addresses, on="address_id", how="left")
     df = df.merge(wx_hist, left_on="address_id", right_index=True, how="left")
     df = df.merge(wx_prev, left_on=["address_id", "policy_year"], right_index=True, how="left")
@@ -61,6 +65,10 @@ def build(rows, customers, addresses, wx_hist, wx_prev, same_year_weather=None):
     for c in df.columns:
         if df[c].dtype == bool:
             df[c] = df[c].astype(int)
+    if normalise_text:  # found 28 Oct: emerging occupation has 80 spellings of 40 jobs; developed
+        for c in TEXT_FIELDS:  # construction_type has 11 spellings of 5 types (missed in Part 1)
+            if c in df.columns:
+                df[c] = df[c].astype("string").str.strip().str.lower()
     return df
 
 

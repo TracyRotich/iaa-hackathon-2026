@@ -69,7 +69,7 @@ def _trend(years, values, weights):
 
 
 def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=None,
-            long_tail_base=None, cap=None, settings=None):
+            long_tail_base=None, cap=None, settings=None, completeness=None):
     """claims: cleaned claims (no duplicates). exposure_by_line_year: DataFrame line, year, exposure.
 
     Returns (peril_table, line_table). line_table has the 2025 cost per exposure year.
@@ -86,14 +86,15 @@ def project(claims, exposure_by_line_year, freq_trend=True, sev_trend_override=N
     stats = c.groupby(["line", "peril", "loss_year"]).agg(
         n=("value", "size"), sev=("value", "mean"),
         open_share=("status", lambda s: (s == "open").mean())).reset_index()
-    stats = stats.merge(peril_completeness(claims, st["years"], st["ref_year"]), on=["line", "peril", "loss_year"])
+    comp = completeness if completeness is not None else peril_completeness(claims, st["years"], st["ref_year"])
+    stats = stats.merge(comp, on=["line", "peril", "loss_year"])
     stats = stats.merge(exposure_by_line_year.rename(columns={"year": "loss_year"}),
                         on=["line", "loss_year"])
     stats["n_ult"] = stats["n"] / stats["completeness"]
     stats["freq"] = stats["n_ult"] / stats["exposure"]
 
     sev_trend = {}
-    for line, perils in SHORT_TAIL_FOR_TREND.items():
+    for line, perils in (SHORT_TAIL_FOR_TREND.items() if len(st["trend_years"]) > 2 else []):
         s = stats[(stats["line"] == line) & stats["peril"].isin(perils)
                   & stats["loss_year"].isin(st["trend_years"])]
         # Chain a weighted index across perils: severity relative to each peril's own mean.

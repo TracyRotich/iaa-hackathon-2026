@@ -38,6 +38,8 @@ def onlevel_sum_insured(tr, te):
         return tr, te, None
     p = tr.pivot_table(index="policy_id", columns="policy_year", values="sum_insured", aggfunc="first")
     yrs = sorted(p.columns)
+    if len(yrs) < 2:  # one training year (emerging holdout): nothing to on-level
+        return tr, te, None
     g = float(np.nanmedian(np.concatenate([(p[b] / p[a]).dropna().to_numpy() for a, b in zip(yrs, yrs[1:])])))
     y0 = min(yrs)
     tr = tr.assign(sum_insured=tr.sum_insured / g ** (tr.policy_year - y0))

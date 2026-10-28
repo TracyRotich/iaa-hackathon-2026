@@ -107,13 +107,16 @@ def row_completeness(policies, grid, cdf, n_points=24, valuation=VALUATION_DATE)
     return f.mean(axis=1)
 
 
-def build_target(policies, claims, ibner_factor=1.0, max_delay_days=730, min_completeness=0.2, cap=None):
+def build_target(policies, claims, ibner_factor=1.0, max_delay_days=730, min_completeness=0.2, cap=None, delay=None):
+    """delay: optional (grid, cdf) reporting pattern to use instead of estimating it from `claims`.
+    The emerging market has only 2023-24 losses, too recent to observe a 2-year delay pattern;
+    its observable delays match the developed market's (28 Oct), so the developed pattern is borrowed."""
     """Full pipeline for one line. Returns a row-level frame plus a diagnostics dict."""
     claims, n_dup = drop_duplicate_claims(claims)
     matched, unmatched = match_claims(policies, claims)
     valued = claim_value(matched, ibner_factor, cap)
     rows = reported_cost_by_row(policies, valued)
-    grid, cdf = reporting_delay_cdf(claims, max_delay_days)
+    grid, cdf = delay if delay is not None else reporting_delay_cdf(claims, max_delay_days)
     comp = row_completeness(policies, grid, cdf)
     rows["completeness"] = np.clip(comp, min_completeness, 1.0)
     rows["claim_cost"] = rows["reported_cost"] / rows["completeness"]
