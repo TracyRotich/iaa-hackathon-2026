@@ -22,7 +22,7 @@ PYTHONPATH=src pytest -q
 ## Status
 Part 1. Real data loaded 21 Oct. Data repairs (exposure basis, duplicate claims, one suspect 11.9m claim), target by row, 2025 level by peril, LightGBM relativities per line, first submission `submissions/sub01_gbm_level.csv`. Submission 2 adds a Poisson x Gamma GLM (splines, credibility target encoding, ridge) blended with LightGBM. Submission 3 adds on-levelled sums insured and backfitted credibility smoothing. Submission 4 fits motor relativities on row cost capped at 25k. Submission 5 (final, private 0.13293) adds the fixes from an independent Codex review, now ported into `src/iaa/pipeline.py`: time-safe weather (R2), sqrt-exposure Tweedie weights (R3), IBNR-consistent GLM inputs (R4), and one challenger per line blended with v4.
 
-Part 2 (emerging market): set `IAA_DATA=data/emerging` and the same scripts read and write that market's folder; the level's year settings are derived from the data (`level.history_settings`) and must be reviewed for a two-year history.
+Part 2 (emerging market): relativities from a developed-market frequency x severity model re-levelled to the emerging market (`src/iaa/transfer.py`), emerging 2025 level with borrowed reporting patterns and trends, and a mix adjustment for the 76% new-business 2025 portfolio. Run `prepare_emerging.py`, `level_emerging.py`, `run_part2.py <out.csv>`; holdout checks in `validate_part2.py`, `validate_transfer.py`, `validate_correction.py`; level sensitivity in `uncertainty_part2.py`. For other scripts, set `IAA_DATA=data/emerging` and the same scripts read and write that market's folder; the level's year settings are derived from the data (`level.history_settings`) and must be reviewed for a two-year history.
 
 ## Reproduce
 ```

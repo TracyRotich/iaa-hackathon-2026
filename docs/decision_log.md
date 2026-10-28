@@ -224,3 +224,31 @@ R4 changes the motor score by ±0.00001: an IBNR correction matters little becau
 | 37 | 25 Oct | Describe v5's gain honestly in the write-up: fixes R2-R4 are correctness fixes; the score gain is from GLM weight (motor) and new challengers (buildings, contents) | Decomposition above | Single-fix runs on both holdouts | — |
 | 38 | 25 Oct | R6, R7: no change to the Part 1 level; R8: wording corrected in `glm.py` and `features.py` | Measured effects ≤ 0.17% | Reconciliation script | Part 2: shared delay function |
 | 39 | 25 Oct | Market folders (`IAA_DATA`, `IAA_WORK`) and data-derived level years (`level.history_settings`) for Part 2 | Emerging market has 2023-24 only | Developed level reproduces 662.78 / 528.10 / 123.88; new tests | Review every year setting against the emerging data before use; two years cannot support a fitted trend |
+
+# Part 2: emerging market (from 28 Oct)
+
+## What changed (EDA, 28 Oct)
+
+| Area | Developed | Emerging | Consequence |
+|---|---|---|---|
+| History | 2021-24, ~2.4m rows | 2023-24, ~109k rows (1/20) | Models on emerging alone overfit; borrow from developed |
+| 2025 portfolio | 15% new business | **76% new business** (broker portfolio), younger drivers; test exposure 2x training | Level needs a mix adjustment |
+| Motor | freq 0.141, sev 3,883 | freq 0.182, sev 2,250 | Different level; shape tested for transfer |
+| Climate | | hotter, more hail and wildfire; glass/hail freq 0.035 vs 0.020 | Weather features kept; level from emerging data |
+| Features | driver/policyholder age, credit band, telematics, mileage | age **bands**, gender; no credit, telematics, mileage | Harmonise ages to bands; gender excluded |
+| Data quality | exposure on wrong basis | same trap (565 rows); **occupation 80 spellings of 40 jobs**; ~12% missing on several fields (2% developed) | Exposure repaired; text normalised; GBM handles missing natively |
+| Part 1 miss | `construction_type` had 11 spellings of 5 types | | Found while checking emerging; noted, Part 1 not rerun |
+| Reporting delays | | same distribution as developed at observable ages | Developed delay pattern borrowed |
+| New files | | `expenses` (loadings by market), `reference_policies` (20 policies) | Awaiting Data-tab instructions |
+
+| 40 | 28 Oct | Borrow developed reporting-delay patterns (row targets by line; level by peril) | Emerging losses too recent to observe a 2-year tail; observable delay quantiles match (e.g. motor median 9 days, 90th pct 46 vs 48) | Delay quantile comparison | IBNR in emerging is a borrowed assumption |
+| 41 | 28 Oct | Exclude `gender` from pricing; measure only | UK/EU standard (Test-Achats); emerging regulation unknown; holdout gain negligible (motor GLM 0.051 -> 0.054, buildings worse) | Holdout test | Revisit if told gender pricing is allowed and material |
+| 42 | 28 Oct | Level: emerging peril level with developed severity trends (6.6/7.4/3.2%), no frequency trend, BI and subsidence severity from 2023 only | Two years cannot support fitted trends; emerging 2023->24 short-tail severity change (motor 8.3%, buildings 7.9%, contents -2.0%) is consistent for motor/buildings, noisy for contents | `level_emerging.py` | 2025 rates at 2023-24 mix: motor 505.6, buildings 476.1, contents 94.9; buildings carries fire volatility (70 claims, 44% of cost) |
+| 43 | 28 Oct | **Relativities from the developed market** (freq x sev GBM on harmonised features, re-levelled to emerging); motor blended 25% with an emerging-only GBM | 2024 holdout D²: prior 0.110/0.097/0.083 (buildings/contents/motor capped) vs best emerging-only 0.064/0.054/0.072; emerging GLMs below zero; boosting emerging trees from the prior made it worse | `validate_part2.py`, `validate_transfer.py` | Single holdout year; ~500 property claims a line |
+| 44 | 28 Oct | 2025 level adjusted for mix: mean model rate on 2025 rows / on 2023-24 rows | 76% new business and younger drivers in 2025; developed and emerging both show NB motor frequency about +30-40% | Mix factors: motor 1.131, buildings 1.076, contents 1.043 | NB effect taken from the model; A/E by NB on holdout checked (decision 45) |
+| 45 | 28 Oct | **Reject** a credibility-style frequency correction (region, payment method, new business, urban density, channel, age band) on top of the developed prior | Full correction worse on every line at every penalty (e.g. buildings 0.110 -> 0.104-0.107); single-factor gains ≤ 0.001 are within one-year noise and choosing them would fit the holdout | `validate_correction.py` | Holdout A/E: monthly payment ~1.09-1.10 in all lines and region differences are emerging-specific signals the prior lacks; revisit with more emerging data |
+| 46 | 28 Oct | Reject make_model in the motor prior | Holdout 0.0830 -> 0.0806 | scratch test | — |
+| 47 | 28 Oct | Borrowed bodily-injury reporting pattern confirmed | Share of H1-2023 BI losses reported within 365 days: emerging 0.887, developed 0.892 | Delay comparison | — |
+| 48 | 28 Oct | Submit `part2_submission01_developed_prior.csv`: rates 572 / 512 / 99 (motor / buildings / contents) | Decisions 40-47 | 209,063 rows, sample order, non-negative | Level uncertainty below |
+
+**Level sensitivity** (`scripts/uncertainty_part2.py`, % change in 2025 rate): severity trend ±2pp → ±3% all lines; BI open claims +20% (IBNER) → motor +3.8%; BI/subsidence severity from both years → buildings −1.5%; emerging (truncated) completeness → motor −1.3%; **removing the four fires above 250k → buildings −15.9%**. Buildings is the least certain line: fire is 44% of its cost and rests on 70 claims. The large fires are kept: they are genuine closed claims, and fire severity is plausibly higher in a hotter, higher-wildfire climate.
