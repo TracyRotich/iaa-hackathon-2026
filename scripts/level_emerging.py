@@ -30,6 +30,31 @@ settings = {"years": (2023, 2024), "ref_year": 2023, "trend_years": (2023, 2024)
             "base_long_tail": {"bodily_injury": (2023,), "subsidence": (2023,)}, "freq_years": (2023, 2024)}
 perils, lines, stats = level.project(em, ex, freq_trend=False, sev_trend_override=sev_trend,
                                      settings=settings, completeness=comp)
+# Severity credibility (shrinkage to a structured target). Benchmark severity = emerging median x developed mean/median ratio (the body
+# from the emerging market, the tail shape from the developed market). Z = s_h^2 / (s_h^2 + se^2),
+# se = CV / sqrt(n) of the emerging mean, s_h = spread across perils of the emerging/developed
+# tail ratio. Few-claim heavy-tailed perils (fire: 70 claims) move towards the benchmark;
+# high-volume perils keep their own severity (Z near 1).
+import numpy as np
+def sev_stats(c):
+    c = c[(c.status != "repudiated") & c.loss_date.dt.year.isin([2023, 2024])]
+    v = (c.incurred_to_date - c.recoveries).clip(lower=0); c = c.assign(v=v)[v > 0]
+    return c.groupby(["line", "peril"]).v.agg(n="size", mean="mean", median="median", sd="std")
+se, sd_ = sev_stats(em), sev_stats(dev)
+t = se.join(sd_, rsuffix="_dev")
+t["tail_em"], t["tail_dev"] = t["mean"] / t["median"], t.mean_dev / t.median_dev
+t["ratio"] = t.tail_em / t.tail_dev                      # emerging tail relative to developed
+s_h = float(t.ratio.std())                               # heterogeneity of tail shape across perils
+t["se_rel"] = t.sd / t["mean"] / np.sqrt(t.n)            # relative standard error of emerging mean
+t["Z"] = s_h ** 2 / (s_h ** 2 + t.se_rel ** 2)
+t["bench_factor"] = 1 / t.ratio                          # benchmark severity / emerging severity
+t["cred_factor"] = t.Z + (1 - t.Z) * t.bench_factor
+perils = perils.merge(t[["Z", "cred_factor"]].reset_index(), on=["line", "peril"], how="left")
+perils["sev_2025"] *= perils.cred_factor
+perils["cost_rate_2025"] = perils.freq_2025 * perils.sev_2025
+lines = perils.groupby("line")["cost_rate_2025"].sum().rename("cost_rate_2025").reset_index()
+print("tail-shape heterogeneity s_h =", round(s_h, 3))
+print(t[["n", "tail_em", "tail_dev", "se_rel", "Z", "cred_factor"]].round(3).to_string())
 perils.to_csv("data/emerging/work/level_perils.csv", index=False)
 lines.to_csv("data/emerging/work/level_lines.csv", index=False)
 stats.to_csv("data/emerging/work/level_stats.csv", index=False)

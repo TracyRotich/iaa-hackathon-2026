@@ -26,6 +26,7 @@ Every AI suggestion that affected the work, with the human decision and the chec
 | 20 | 28 Oct | Part 2 EDA | Claude | Compared every table across markets; found the repeated exposure trap, occupation spelling variants, 6x more missing values, and a missed Part 1 issue (construction_type spellings) | Accept | Value counts and range tables for both markets | Data issues logged before modelling |
 | 21 | 28 Oct | Part 2 modelling | Claude | Proposed a developed-market prior re-levelled to emerging, then boosting and a credibility correction on top | Accept the prior; reject both add-ons and make_model | 2024 holdout for every option; segment A/E | Simpler model chosen on evidence; emerging-only models shown to overfit |
 | 22 | 28 Oct | Bug caught | Claude's own code | Harmonising text lower-cased row IDs, which would have broken the submission join | Fix before first run | Code review before running | Caught before any output |
-| 23 | | | | | | | |
+| 23 | 28 Oct | Part 2 methods | Claude | Proposed a peril-level severity credibility; flagged premium-implied loss ratios as a cross-check | Accept the credibility; modify the loss-ratio note after checking it (first draft had wrong historical figures) | Recomputed loss ratios; reconciled level vs row targets by year, which exposed R6 as material here | Submission 2; one AI error corrected before it reached the write-up |
+| 24 | | | | | | | |
 
 **Rule for myself:** no AI-written number, feature or claim goes into the write-up until I have reproduced it or checked it against the data.
