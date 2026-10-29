@@ -30,8 +30,70 @@ AGE_COL = {"motor": ("driver_age", "driver_age_band"), "buildings": ("policyhold
 NOT_TRANSFERABLE = {"region", "construction_type", "occupation", "previous_insurer", "make_model"}
 
 
+# Found by the ChatGPT review (28 Oct), verified here: in both markets some property sums insured are
+# recorded 1,000x too large. Same-policy histories put the ratio at a median of exactly 1,000, and
+# there is a clean gap (buildings: ordinary max 1.06m, flagged min 52m; contents: 0.35m vs 7.6m).
+SI_UNIT_THRESHOLD = {"buildings": 1e7, "contents": 1e6}
+FULL_CREDIBILITY_CLAIMS = 1082  # classical credibility, p = 90%, k = 5%
+
+
+def repair_sum_insured(df, line):
+    """Divide flagged sums insured by 1,000; keep the raw value and an indicator."""
+    if "sum_insured" not in df or line not in SI_UNIT_THRESHOLD:
+        return df
+    flag = df["sum_insured"] > SI_UNIT_THRESHOLD[line]
+    return df.assign(sum_insured_raw=df["sum_insured"], si_unit_repaired=flag.astype(int),
+                     sum_insured=df["sum_insured"].where(~flag, df["sum_insured"] / 1000))
+
+
+def si_growth(df):
+    """Median same-policy year-on-year growth of the sum insured."""
+    p = df.pivot_table(index="policy_id", columns="policy_year", values="sum_insured", aggfunc="first")
+    yrs = sorted(p.columns)
+    return float(np.nanmedian(np.concatenate([(p[b] / p[a]).dropna().to_numpy() for a, b in zip(yrs, yrs[1:])])))
+
+
+def onlevel_si(df, growth, base_year=2023):
+    """Sums insured in base-year money, so a 2025 row is not treated as a bigger risk because of
+    two years of indexation that the severity trend in the level already carries (review point:
+    inflation must enter once)."""
+    if "sum_insured" not in df or growth is None:
+        return df
+    return df.assign(sum_insured=df["sum_insured"] / growth ** (df["policy_year"] - base_year))
+
+
+def nb_credibility(tr, fq, sv, cap=None):
+    """Credibility-weighted new-business adjustment to the developed prior, from emerging experience.
+    c_f = (A/E frequency, new business) / (A/E frequency, renewals); Z_f = min(1, sqrt(n_NB / 1082)).
+    c_s likewise for severity, with full credibility 1082 x (1 + CV^2) claims.
+    Returns the multiplicative factor for new-business rows and its components."""
+    e = tr.exposure.to_numpy(); n, c = _counts_cost(tr, cap)
+    nb = tr.new_business.astype(bool).to_numpy()
+    En = fq * e
+    c_f = (n[nb].sum() / En[nb].sum()) / (n[~nb].sum() / En[~nb].sum())
+    z_f = min(1.0, np.sqrt(n[nb].sum() / FULL_CREDIBILITY_CLAIMS))
+    pos = (n > 0) & (c > 0)
+    Es = sv * n
+    c_s = (c[pos & nb].sum() / Es[pos & nb].sum()) / (c[pos & ~nb].sum() / Es[pos & ~nb].sum())
+    x = c[pos] / n[pos]; cv = x.std() / x.mean()
+    z_s = min(1.0, np.sqrt(n[pos & nb].sum() / (FULL_CREDIBILITY_CLAIMS * (1 + cv ** 2))))
+    f = (1 + z_f * (c_f - 1)) * (1 + z_s * (c_s - 1))
+    return f, {"nb_claims": float(n[nb].sum()), "freq_ae_ratio": round(float(c_f), 3), "z_freq": round(z_f, 3),
+               "sev_ae_ratio": round(float(c_s), 3), "z_sev": round(z_s, 3), "factor": round(float(f), 4)}
+
+
+def calibrate_to_level(p_tr, e_tr, p_te, e_te, level):
+    """prediction_i = p_te_i x level / mu_train, mu_train = sum(p_tr) / sum(e_tr): the exposure-weighted
+    mean model rate on the portfolio the level was measured on. Equivalent to rescaling test relativities
+    to level x mix x exposure with mix = mu_test / mu_train; the mix enters once, and any constant scaling
+    of the model cancels."""
+    p_tr, p_te = np.asarray(p_tr, float), np.asarray(p_te, float)
+    mu_tr = p_tr.sum() / np.asarray(e_tr, float).sum(); mu_te = p_te.sum() / np.asarray(e_te, float).sum()
+    return p_te * level / mu_tr, mu_te / mu_tr
+
+
 def harmonise(df, line):
-    df = df.copy(deep=False)
+    df = repair_sum_insured(df.copy(deep=False), line)
     age, band = AGE_COL[line]
     if age in df and band not in df:
         df[band] = pd.cut(df[age], AGE_BINS, right=False, labels=AGE_LABELS).astype("string")

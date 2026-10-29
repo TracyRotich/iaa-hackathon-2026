@@ -43,6 +43,8 @@ EXCLUDE = {
     # Fairness and proxy discrimination (FCA Consumer Duty; proxy for protected characteristics)
     "surname": "fairness: potential proxy for ethnicity; no legitimate risk rationale",
     "email_domain": "fairness: proxy for age and socio-economic group, no causal link to claims",
+    "sum_insured_raw": "unrepaired value kept for audit; the repaired sum_insured is the feature",
+    "si_unit_repaired": "audit flag for the 1,000x unit repair",
     "gender": "fairness: emerging market only; gender-based pricing is prohibited in the UK/EU (Test-Achats) and we apply the same standard; its predictive value is measured, not used",
     # Marketing and admin fields with no risk rationale; likely noise or proxies
     "marketing_segment": "no risk rationale; assigned by marketing, may encode protected traits",
