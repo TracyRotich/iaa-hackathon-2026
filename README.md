@@ -41,3 +41,17 @@ PYTHONPATH=src python scripts/validate_v5.py 2023 2024 --decompose   # v5 holdou
 PYTHONPATH=src python scripts/run_part1_v5.py submissions/submission05_v5_own_pipeline.csv
 PYTHONPATH=src python scripts/check_level_reconciliation.py           # review findings R6, R7
 ```
+
+## Reproduce Part 2 (emerging market, final = submission 3)
+```
+# Kaggle files: developed market in data/, emerging market in data/emerging/
+PYTHONPATH=src python scripts/prepare.py                 # developed frames (used for the transfer prior)
+PYTHONPATH=src python scripts/prepare_emerging.py        # emerging frames, borrowed reporting pattern
+PYTHONPATH=src python scripts/level_emerging.py          # 2025 level by peril with severity credibility
+PYTHONPATH=src python scripts/run_part2.py submissions/part2_sub03_si_fix.csv --si-fix
+PYTHONPATH=src python scripts/validate_review.py         # holdout evidence: transfer, SI fix, NB factor, bootstrap
+PYTHONPATH=src python scripts/uncertainty_part2.py       # level sensitivity
+PYTHONPATH=src python scripts/reference_premiums.py      # technical premium for the 20 reference policies
+PYTHONPATH=src pytest -q                                 # 26 tests
+```
+Governance: `docs/decision_log.md` (decisions 1-55 + review tables), `docs/ai_log.md` (24 entries). Reviews: `docs/part2_review_brief_for_chatgpt.md`, `docs/part2_response_to_chatgpt_review.md`.
