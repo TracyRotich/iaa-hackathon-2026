@@ -1,0 +1,199 @@
+<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Version history: iaa-hackathon</title>
+<style>body{font:15px/1.5 -apple-system,Segoe UI,Arial,sans-serif;max-width:900px;margin:32px auto;padding:0 16px;color:#1a1a1a;background:#fbfbf8}
+h1{font-size:24px} h2{font-size:17px;margin:0} .n{display:inline-block;min-width:28px;color:#666} section{border-top:1px solid #ddd;padding:12px 0}
+.meta{color:#666;margin:4px 0} pre{white-space:pre-wrap;background:#f1f0eb;padding:8px;border-radius:6px;font-size:13px} summary{cursor:pointer;color:#555}</style>
+<h1>Version history: iaa-hackathon</h1>
+<p>IAA AI-Assisted Hackathon 2026 (Parts 1 and 2), Tracy Rotich. 25 commits, oldest first, generated from the git repository with <code>git log</code> (the commit that adds this page is not listed).
+The full repository, including its <code>.git</code> history, is in <code>iaa-hackathon-final-with-history.zip</code> (run <code>git log</code> inside it).
+Competition data and prediction files are excluded by <code>.gitignore</code>. Commit messages end with an AI co-author line in the repository itself; it is omitted here for readability.</p>
+<section><h2><span class=n>1</span> Repo skeleton: local D2 metric, guards, GLM/GBM benchmarks, tests, governance logs</h2>
+<p class=meta><code>593fbc2</code> · 16 Oct 2026 18:41 UTC</p>
+
+<details><summary> 17 files changed, 407 insertions(+)</summary><pre>.gitignore             |  6 ++++
+ README.md              | 22 ++++++++++++++
+ data/.gitkeep          |  0
+ docs/ai_log.md         | 10 ++++++
+ docs/decision_log.md   | 23 ++++++++++++++
+ notebooks/.gitkeep     |  0
+ requirements.txt       |  5 +++
+ src/iaa/__init__.py    |  1 +
+ src/iaa/config.py      | 22 ++++++++++++++
+ src/iaa/guards.py      | 59 ++++++++++++++++++++++++++++++++++++
+ src/iaa/metrics.py     | 33 ++++++++++++++++++++
+ src/iaa/models.py      | 82 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/iaa/submission.py  | 25 +++++++++++++++
+ src/iaa/synthetic.py   | 25 +++++++++++++++
+ src/iaa/validation.py  | 27 +++++++++++++++++
+ submissions/.gitkeep   |  0
+ tests/test_pipeline.py | 67 +++++++++++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>2</span> Build target from claims (matching, repudiated, recoveries, IBNR); feature policy and trap list from Data tab</h2>
+<p class=meta><code>496e2c1</code> · 16 Oct 2026 18:43 UTC</p>
+
+<details><summary> 9 files changed, 311 insertions(+), 27 deletions(-)</summary><pre>README.md            |   4 +-
+ docs/ai_log.md       |   4 +-
+ docs/decision_log.md |  48 ++++++++++++++------
+ requirements.txt     |   1 +
+ src/iaa/config.py    |  58 +++++++++++++++++++-----
+ src/iaa/guards.py    |   5 ++-
+ src/iaa/load.py      |  21 +++++++++
+ src/iaa/target.py    | 121 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/test_target.py |  76 ++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>3</span> Part 1 on real data: data repairs, level by peril, LightGBM relativities, first submission</h2>
+<p class=meta><code>8e6039d</code> · 21 Oct 2026 14:42 UTC</p>
+
+<details><summary> 15 files changed, 407 insertions(+), 10 deletions(-)</summary><pre>.gitignore            |   2 +
+ README.md             |  10 ++++-
+ docs/ai_log.md        |   6 ++-
+ docs/decision_log.md  |  27 +++++++++++++
+ scripts/experiment.py |  55 +++++++++++++++++++++++++++
+ scripts/level.py      |  15 ++++++++
+ scripts/prepare.py    |  32 ++++++++++++++++
+ scripts/run_part1.py  |  42 ++++++++++++++++++++
+ src/iaa/config.py     |   4 +-
+ src/iaa/features.py   |  56 +++++++++++++++++++++++++++
+ src/iaa/guards.py     |   2 +-
+ src/iaa/level.py      | 103 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/iaa/load.py       |  25 +++++++++++-
+ src/iaa/target.py     |  18 +++++++--
+ tests/test_target.py  |  20 ++++++++++</pre></details></section><section><h2><span class=n>4</span> Poisson x Gamma GLM, splines, credibility target encoding, Gini/A-E metrics; blended submission 2</h2>
+<p class=meta><code>be003a1</code> · 21 Oct 2026 15:23 UTC</p>
+
+<details><summary> 10 files changed, 399 insertions(+), 2 deletions(-)</summary><pre>README.md                 |   4 +-
+ docs/ai_log.md            |   5 +-
+ docs/decision_log.md      |  33 ++++++++++
+ scripts/compare_models.py |  42 ++++++++++++
+ scripts/gbm_variants.py   |  40 +++++++++++
+ scripts/run_part1_v2.py   |  33 ++++++++++
+ src/iaa/gbm.py            |  28 ++++++++
+ src/iaa/glm.py            | 165 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/iaa/metrics.py        |  26 ++++++++
+ tests/test_glm.py         |  25 +++++++</pre></details></section><section><h2><span class=n>6</span> On-levelled sums insured, backfitted credibility, trend checks, IBNER evidence, uncertainty; submission 3</h2>
+<p class=meta><code>26d6612</code> · 21 Oct 2026 16:40 UTC</p>
+
+<details><summary> 10 files changed, 314 insertions(+), 10 deletions(-)</summary><pre>README.md                   |  6 +++-
+ docs/ai_log.md              |  4 ++-
+ docs/decision_log.md        |  7 +++++
+ scripts/run_part1_v2.py     | 25 +++++++++++++--
+ scripts/gi_pricing_experiments.py  | 62 +++++++++++++++++++++++++++++++++++++
+ scripts/gi_pricing_level_checks.py | 64 ++++++++++++++++++++++++++++++++++++++
+ scripts/uncertainty.py      | 75 +++++++++++++++++++++++++++++++++++++++++++++
+ src/iaa/glm.py              | 32 +++++++++++++++++--
+ src/iaa/level.py            | 12 ++++++--</pre></details></section><section><h2><span class=n>7</span> Log open items: level uncertainty and pending checks</h2>
+<p class=meta><code>d56ca42</code> · 22 Oct 2026 23:57 UTC</p>
+
+<details><summary> 1 file changed, 4 insertions(+)</summary><pre>docs/decision_log.md | 4 ++++</pre></details></section><section><h2><span class=n>8</span> Record Part 1 public leaderboard scores</h2>
+<p class=meta><code>3474f70</code> · 23 Oct 2026 00:04 UTC</p>
+
+<details><summary> 1 file changed, 10 insertions(+)</summary><pre>docs/decision_log.md | 10 ++++++++++</pre></details></section><section><h2><span class=n>9</span> Test written premium as a feature: rejected on holdout evidence</h2>
+<p class=meta><code>0bdb18a</code> · 23 Oct 2026 00:25 UTC</p>
+
+<details><summary> 3 files changed, 31 insertions(+), 1 deletion(-)</summary><pre>docs/ai_log.md                  |  3 ++-
+ docs/decision_log.md            |  2 ++
+ scripts/test_written_premium.py | 27 +++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>10</span> Six further modelling ideas tested; motor basic-limit cap adopted (submission 4)</h2>
+<p class=meta><code>a37cc57</code> · 23 Oct 2026 03:13 UTC</p>
+
+<details><summary> 8 files changed, 279 insertions(+), 5 deletions(-)</summary><pre>docs/ai_log.md                |   4 +-
+ docs/decision_log.md          |   9 ++++
+ scripts/deep_tests.py         | 111 ++++++++++++++++++++++++++++++++++++++++++
+ scripts/final_candidates.py   |  25 ++++++++++
+ scripts/run_part1_v2.py       |  13 +++--
+ src/iaa/glm.py                |   3 +-</pre></details></section><section><h2><span class=n>11</span> Restrict pytest to tests/; rename written-premium check script</h2>
+<p class=meta><code>5493791</code> · 23 Oct 2026 03:13 UTC</p>
+
+<details><summary> 3 files changed, 4 insertions(+), 2 deletions(-)</summary><pre>docs/decision_log.md                                          | 2 +-
+ pytest.ini                                                    | 2 ++
+ scripts/{test_written_premium.py =&gt; check_written_premium.py} | 2 +-</pre></details></section><section><h2><span class=n>12</span> Review submission 4: large-loss allocation tested by segment; v3 and v4 reproduce</h2>
+<p class=meta><code>3daa2ff</code> · 23 Oct 2026 13:41 UTC</p>
+
+<details><summary> 3 files changed, 64 insertions(+), 1 deletion(-)</summary><pre>docs/ai_log.md                         |  3 ++-
+ docs/decision_log.md                   | 18 ++++++++++++++
+ scripts/check_large_loss_allocation.py | 44 ++++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>13</span> Add resource list and neutral task brief for comparison with another model</h2>
+<p class=meta><code>d94275a</code> · 23 Oct 2026 14:05 UTC</p>
+
+<details><summary> 1 file changed, 169 insertions(+)</summary><pre>docs/resources_and_brief_for_another_llm.md | 169 ++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>14</span> Record independent Codex review: findings verified, two bugs confirmed</h2>
+<p class=meta><code>20f902d</code> · 23 Oct 2026 15:36 UTC</p>
+
+<details><summary> 2 files changed, 24 insertions(+), 1 deletion(-)</summary><pre>docs/ai_log.md       |  3 ++-
+ docs/decision_log.md | 22 ++++++++++++++++++++++</pre></details></section><section><h2><span class=n>15</span> Log Part 1 private results and final selection (decision 35, AI log 18)</h2>
+<p class=meta><code>d80268b</code> · 23 Oct 2026 18:32 UTC</p>
+
+<details><summary> 2 files changed, 14 insertions(+), 1 deletion(-)</summary><pre>docs/ai_log.md       |  3 ++-
+ docs/decision_log.md | 12 ++++++++++++</pre></details></section><section><h2><span class=n>16</span> Port v5 review fixes into own pipeline; reproduce holdouts and submission 5</h2>
+<p class=meta><code>ec1535d</code> · 25 Oct 2026 20:56 UTC</p>
+<pre class=body>- R2 time-safe weather, R3 sqrt-exposure Tweedie weights, R4 IBNR-consistent GLM
+- pipeline.py with v4/v5 relativities; validate_v5.py, run_part1_v5.py
+- R6/R7 measured (immaterial), R8 wording fixed
+- market folders and data-derived level years for Part 2
+- decisions 36-39, AI log 19, 5 new tests</pre>
+<details><summary> 17 files changed, 402 insertions(+), 25 deletions(-)</summary><pre>README.md                             | 11 ++++-
+ docs/ai_log.md                        |  3 +-
+ docs/decision_log.md                  | 37 ++++++++++++++
+ requirements.txt                      |  2 +
+ scripts/check_level_reconciliation.py | 46 ++++++++++++++++++
+ scripts/level.py                      | 10 ++--
+ scripts/prepare.py                    |  6 ++-
+ scripts/run_part1_v5.py               | 35 ++++++++++++++
+ scripts/validate_v5.py                | 40 ++++++++++++++++
+ src/iaa/config.py                     |  6 +++
+ src/iaa/features.py                   | 23 +++++++--
+ src/iaa/gbm.py                        | 32 +++++++++++++
+ src/iaa/glm.py                        |  5 +-
+ src/iaa/level.py                      | 31 ++++++++----
+ src/iaa/load.py                       |  5 +-
+ src/iaa/pipeline.py                   | 90 +++++++++++++++++++++++++++++++++++
+ tests/test_review_fixes.py            | 45 ++++++++++++++++++</pre></details></section><section><h2><span class=n>17</span> Part 2: emerging data prep, level, developed-prior transfer, first submission</h2>
+<p class=meta><code>b423f78</code> · 28 Oct 2026 16:26 UTC</p>
+<pre class=body>- prepare_emerging.py: borrowed developed reporting pattern; text normalisation (occupation, construction_type)
+- level_emerging.py: peril level with developed completeness and severity trends
+- transfer.py: developed freq x sev prior, re-levelled; boosting-from-prior option
+- validate_part2.py / validate_transfer.py: 2023 -&gt; 2024 holdout
+- run_part2.py: relativities x level x mix factor
+- gender excluded (fairness), measured only</pre>
+<details><summary> 11 files changed, 322 insertions(+), 8 deletions(-)</summary><pre>scripts/level_emerging.py    |  38 +++++++++++++++
+ scripts/prepare_emerging.py  |  28 +++++++++++
+ scripts/run_part2.py         |  56 ++++++++++++++++++++++
+ scripts/validate_part2.py    |  37 +++++++++++++++
+ scripts/validate_transfer.py |  33 +++++++++++++
+ src/iaa/config.py            |   1 +
+ src/iaa/features.py          |  14 ++++--
+ src/iaa/level.py             |   7 +--
+ src/iaa/pipeline.py          |   2 +
+ src/iaa/target.py            |   7 ++-
+ src/iaa/transfer.py          | 107 +++++++++++++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>18</span> Part 2: diagnostics, rejected corrections, level sensitivity, logs</h2>
+<p class=meta><code>f01d027</code> · 28 Oct 2026 16:33 UTC</p>
+
+<details><summary> 5 files changed, 117 insertions(+), 2 deletions(-)</summary><pre>README.md                      |  2 +-
+ docs/ai_log.md                 |  5 +++-
+ docs/decision_log.md           | 28 +++++++++++++++++++++
+ scripts/uncertainty_part2.py   | 27 ++++++++++++++++++++
+ scripts/validate_correction.py | 57 ++++++++++++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>19</span> Test: harmonise keeps IDs, maps ages to bands</h2>
+<p class=meta><code>c75cd15</code> · 28 Oct 2026 16:33 UTC</p>
+
+<details><summary> 1 file changed, 11 insertions(+)</summary><pre>tests/test_transfer.py | 11 +++++++++++</pre></details></section><section><h2><span class=n>20</span> Part 2: severity credibility in level; submission 2</h2>
+<p class=meta><code>f107162</code> · 28 Oct 2026 16:50 UTC</p>
+
+<details><summary> 4 files changed, 47 insertions(+), 1 deletion(-)</summary><pre>docs/ai_log.md                 |  3 ++-
+ docs/decision_log.md           |  3 +++
+ scripts/level_emerging.py      | 26 ++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>21</span> Part 2 review brief for ChatGPT</h2>
+<p class=meta><code>9622db5</code> · 28 Oct 2026 17:03 UTC</p>
+
+<details><summary> 1 file changed, 89 insertions(+)</summary><pre>docs/part2_review_brief_for_chatgpt.md | 89 ++++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>22</span> Act on ChatGPT Part 2 review: SI unit repair, SI on common money, calibration refactor+tests, NB credibility tested and rejected, submission 3</h2>
+<p class=meta><code>729383a</code> · 29 Oct 2026 00:08 UTC</p>
+
+<details><summary> 7 files changed, 220 insertions(+), 22 deletions(-)</summary><pre>docs/ai_log.md             |  3 +-
+ docs/decision_log.md       | 26 +++++++++++++++--
+ scripts/run_part2.py       | 50 +++++++++++++++++++------------
+ scripts/validate_review.py | 73 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/iaa/config.py          |  2 ++
+ src/iaa/transfer.py        | 64 +++++++++++++++++++++++++++++++++++++++-
+ tests/test_transfer.py     | 24 +++++++++++++++</pre></details></section><section><h2><span class=n>23</span> Response to ChatGPT Part 2 review</h2>
+<p class=meta><code>facd069</code> · 29 Oct 2026 00:09 UTC</p>
+
+<details><summary> 1 file changed, 36 insertions(+)</summary><pre>docs/part2_response_to_chatgpt_review.md | 36 ++++++++++++++++++++++++++++++++</pre></details></section><section><h2><span class=n>24</span> Write-up diagnostics: calibration deciles, gender proxy check, reference policy technical premiums</h2>
+<p class=meta><code>53e6d1e</code> · 30 Oct 2026 15:30 UTC</p>
+
+<details><summary> 4 files changed, 190 insertions(+)</summary><pre>docs/figures/diagnostics.json              | 110 +++++++++++++++++++++++++++++
+ scripts/diagnostics_writeup.py             |  33 +++++++++
+ scripts/reference_premiums.py              |  26 +++++++</pre></details></section><section><h2><span class=n>25</span> README: reproduce Part 2; final package</h2>
+<p class=meta><code>b0f90ee</code> · 30 Oct 2026 15:34 UTC</p>
+
+<details><summary> 1 file changed, 14 insertions(+)</summary><pre>README.md | 14 ++++++++++++++</pre></details></section></html>
