@@ -30,4 +30,5 @@ for l in ["motor", "buildings", "contents"]:
     gp[l] = {"predicted_2025_F_over_M": round(float(pr["F"] / pr["M"]), 3), "observed_2023_24_F_over_M": round(float(ob["F"] / ob["M"]), 3)}
 out["gender_proxy_check"] = gp
 print(json.dumps(out, indent=1))
+import os; os.makedirs("docs/figures", exist_ok=True)  # outputs are not committed
 json.dump(out, open("docs/figures/diagnostics.json", "w"), indent=1)

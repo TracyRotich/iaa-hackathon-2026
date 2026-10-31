@@ -20,6 +20,7 @@ ref["technical_premium"] = cost / denom
 ref["actual_vs_technical"] = ref.written_premium / ref.technical_premium
 cols = ["row_id", "line", "channel", "exposure", "new_business", "risk_premium", "technical_premium", "written_premium", "actual_vs_technical"]
 t = ref[cols].round(3)
+import os; os.makedirs("docs/figures", exist_ok=True)  # outputs are not committed
 t.to_csv("docs/figures/reference_policy_premiums.csv", index=False)
 print("loadings:", ex.to_dict())
 print(t.to_string(index=False))
