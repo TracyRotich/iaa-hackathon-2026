@@ -70,7 +70,7 @@ Also rejected:
 4. The **mix factor** trusts the developed model's new-business effect. Emerging holdout A/E by new business (cost-based, noisy) was 0.90 motor, 0.76 buildings and 1.40 contents.
 5. **IBNER = 1** while 58% of emerging bodily-injury claims are open.
 6. **Credibility s_h** is estimated from 15 perils across lines; Z is sensitive to it.
-7. **`expenses` / `reference_policies` are unused.** Is a deliverable expected from them (for example, office premiums per )?
+7. **`expenses` / `reference_policies` are unused.** Is a deliverable expected from them (for example, office premiums)?
 
 ## 6. What we would like from the review
 - Check the logic of section 3 for errors or double counting, especially level × mix and the re-levelling of the prior.

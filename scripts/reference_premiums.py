@@ -1,5 +1,5 @@
 """Illustrative office (technical) premium for the 20 emerging reference policies, using the
-`expenses` table and the cost-plus formula in  Not part of the Kaggle CSV.
+`expenses` table and a cost-plus formula. Not part of the Kaggle CSV.
   premium = (risk premium x (1 + cat reinsurance, property only) + fixed expense) /
             (1 - variable expense - commission(channel) - premium tax - target profit)
 Assumptions (stated, not given by the organisers): fixed expense charged once per policy row;

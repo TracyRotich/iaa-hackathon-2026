@@ -33,7 +33,7 @@ def norm(p):
 
 
 def onlevel_sum_insured(tr, te):
-    """deflate sums insured to first-year money at the observed same-policy growth."""
+    """Deflate sums insured to first-year money at the observed same-policy growth."""
     if "sum_insured" not in tr:
         return tr, te, None
     p = tr.pivot_table(index="policy_id", columns="policy_year", values="sum_insured", aggfunc="first")

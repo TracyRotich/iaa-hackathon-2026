@@ -79,7 +79,7 @@ The blend weight was chosen on 2023 and the same weight was best on 2024 for eve
 
 | 21 | 21 Oct | On-level sums insured to 2021 money (index from same-policy growth: 3% buildings, 2% contents) | 2025 values otherwise sit above the training range for tree splits | GBM holdout D² up on both years for both lines | — |
 | 22 | 21 Oct | Backfitted credibility smoothing for make_model and occupation in the GLM | one-way encoding double-counts effects shared with age and other factors | Motor GLM D² +0.0004 / +0.0002; motor occupation κ ~150 → ~600; contents occupation κ = ∞ | — |
-| 23 | 21 Oct | Keep the all-in severity trend; report median and mix-adjusted trends as the assumption range |  | Level moves −5% to +4% across methods | Organisers' view on trend |
+| 23 | 21 Oct | Keep the all-in severity trend; report median and mix-adjusted trends as the assumption range | Trend method is uncertain | Level moves −5% to +4% across methods | Organisers' view on trend |
 | 24 | 21 Oct | **Submission 3** = submission 2 + decisions 21–22 | Small, consistent holdout gains; principled | `run_part1_v2.py --gi-methods`; sub02 still reproduces byte-identically | — |
 
 ## Findings so far
@@ -156,7 +156,7 @@ Findings: (1) the D² gain of v4 is real and holds whichever allocation is used,
 
 ## Independent review by a second AI model (Codex, 23 Oct)
 
-Tracy Rotich gave Codex the task brief, the data, and this repo. Its findings, each checked here:
+Tracy Rotich gave Codex the task brief (`docs/neutral_task_brief.md`), the data, and this repo. Its findings, each checked here:
 
 | # | Codex finding | Checked | Verdict |
 |---|---|---|---|
