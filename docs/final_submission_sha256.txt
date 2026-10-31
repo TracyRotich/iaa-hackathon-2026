@@ -1,0 +1,5 @@
+SHA-256 of the two prediction files submitted for final scoring (computed 31 Oct 2026 from the copies in the final submission folder).
+Prediction files are not committed (.gitignore); these hashes let anyone confirm a file is the one submitted.
+
+31ab37e630d502bac75302dbae90d0d0486d59890ae6f6940e458acf8ae7b0f7  Week1_submission05_review_fixes_blend.csv   (Part 1 final, v5; 626,639 rows + header; the file Kaggle scored, built by Codex)
+e2ac34bdad0fba24b627dd515e264f7f73486932011ea7fe0000ee3f8c6a10fc  Week2_part2_submission03_si_fix.csv          (Part 2 final, submission 3; 209,063 rows + header; built by scripts/run_part2.py --si-fix)

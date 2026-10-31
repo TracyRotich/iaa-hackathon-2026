@@ -64,10 +64,15 @@ def match_claims(policies, claims):
 # --------------------------------------------------------------------------- 2-4. value
 
 def claim_value(matched, ibner_factor=1.0, cap=None):
-    """Net claim value for non-repudiated claims. Open claims can carry an IBNER factor."""
+    """Net claim value for non-repudiated claims. Open claims can carry an IBNER factor,
+    applied to the outstanding case estimate only (incurred - paid), never to amounts
+    already paid. With the default factor of 1 the value is incurred less recoveries."""
     c = matched[matched["status"] != "repudiated"].copy()
     c["value"] = (c["incurred_to_date"] - c["recoveries"]).clip(lower=0, upper=cap)
-    c.loc[c["status"] == "open", "value"] *= ibner_factor
+    if ibner_factor != 1.0:
+        o = c["status"] == "open"
+        outstanding = (c.loc[o, "incurred_to_date"] - c.loc[o, "paid_to_date"]).clip(lower=0)
+        c.loc[o, "value"] = (c.loc[o, "value"] + (ibner_factor - 1.0) * outstanding).clip(lower=0, upper=cap)
     return c
 
 

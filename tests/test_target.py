@@ -49,11 +49,15 @@ def test_value_drops_repudiated_and_nets_recoveries(toy):
     assert rows.loc["M2", "n_claims"] == 1
 
 
-def test_ibner_factor_applies_to_open_only(toy):
+def test_ibner_factor_applies_to_open_outstanding_only(toy):
+    # C2 is open: paid 200, incurred 800, so outstanding 600. +10% IBNER -> 800 + 60.
+    # The factor must not touch amounts already paid, nor closed claims (C1).
     pol, clm = toy
     matched, _ = target.match_claims(pol, clm)
     v = target.claim_value(matched, ibner_factor=1.1).set_index("claim_id")["value"]
-    assert v["C2"] == pytest.approx(880.0) and v["C1"] == 900.0
+    assert v["C2"] == pytest.approx(860.0) and v["C1"] == 900.0
+    base = target.claim_value(matched).set_index("claim_id")["value"]
+    assert base["C2"] == 800.0
 
 
 def test_completeness_is_lower_for_recent_rows():

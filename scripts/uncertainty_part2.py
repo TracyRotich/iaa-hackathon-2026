@@ -18,7 +18,11 @@ base = run(); rows = {"base": base}
 rows["severity trend -2pp"] = run({k: v - 0.02 for k, v in base_trend.items()})
 rows["severity trend +2pp"] = run({k: v + 0.02 for k, v in base_trend.items()})
 rows["BI & subsidence severity from 2023-24"] = run(settings={**S, "base_long_tail": {}})
-rows["BI open claims +20% (IBNER)"] = run(claims=em.assign(incurred_to_date=em.incurred_to_date.where(~((em.peril == "bodily_injury") & (em.status == "open")), em.incurred_to_date * 1.2)))
+# IBNER stress on the outstanding case estimate only (paid + 1.2 x outstanding). Corrected 30 Oct:
+# the first version scaled the whole incurred amount, including paid, and gave motor +3.8%.
+bi_open = (em.peril == "bodily_injury") & (em.status == "open")
+outstanding = (em.incurred_to_date - em.paid_to_date).clip(lower=0)
+rows["BI open claims: outstanding +20% (IBNER)"] = run(claims=em.assign(incurred_to_date=em.incurred_to_date.where(~bi_open, em.incurred_to_date + 0.2 * outstanding)))
 rows["completeness from emerging 2023 (truncated)"] = run(comp=level.peril_completeness(em, years=(2023, 2024), ref_year=2023))
 no_big_fire = em[~((em.peril == "fire") & ((em.incurred_to_date - em.recoveries) > 250_000))]
 rows["fire claims > 250k removed"] = run(claims=no_big_fire)
